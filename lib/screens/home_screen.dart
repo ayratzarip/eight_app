@@ -19,6 +19,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _searchController = TextEditingController();
+  int _selectedTab = 0; // 0 - Журнал, 1 - Цели, 2 - Инструкции
 
   @override
   void initState() {
@@ -34,11 +35,57 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+  void _onTabTapped(int index) {
+    if (index == _selectedTab) return;
+    if (index == 1) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const GoalsScreen()),
+      );
+    } else if (index == 2) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const InstructionsScreen()),
+      );
+    }
+    setState(() {
+      _selectedTab = index;
+    });
+  }
+
   String _sanitizeCsvField(String text) {
     if (text.contains(',') || text.contains('"') || text.contains('\n')) {
       return '"${text.replaceAll('"', '""')}"';
     }
     return text;
+  }
+
+  // Функция для очистки разделителей из текста действий
+  String _cleanActionsText(String actions) {
+    const actionResultSeparator = "||RESULT:";
+    final separatorIndex = actions.indexOf(actionResultSeparator);
+    if (separatorIndex != -1) {
+      return actions.substring(0, separatorIndex);
+    }
+    return actions;
+  }
+
+  // Функция для очистки разделителей из текста будущих действий
+  String _cleanFutureActionsText(String futureActions) {
+    const futureActionOptionSeparator = "||FA_OPTION:";
+    final separatorIndex = futureActions.indexOf(futureActionOptionSeparator);
+    if (separatorIndex != -1) {
+      final option = futureActions.substring(0, separatorIndex);
+      final text = futureActions.substring(
+        separatorIndex + futureActionOptionSeparator.length,
+      );
+      if (text.trim().isEmpty) {
+        return option;
+      } else {
+        return '$option. $text';
+      }
+    }
+    return futureActions;
   }
 
   Future<void> _exportToCsv(BuildContext context) async {
@@ -73,8 +120,8 @@ class _HomeScreenState extends State<HomeScreen> {
         _sanitizeCsvField(entry.attentionFocus),
         _sanitizeCsvField(entry.thoughts),
         _sanitizeCsvField(entry.bodySensations),
-        _sanitizeCsvField(entry.actions),
-        _sanitizeCsvField(entry.futureActions),
+        _sanitizeCsvField(_cleanActionsText(entry.actions)),
+        _sanitizeCsvField(_cleanFutureActionsText(entry.futureActions)),
       ];
       csvRows.add(row.join(','));
     }
@@ -110,158 +157,127 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    // Цвет Tailwind text-green-700
+    const Color kLogoGreen = Color(0xFF2f855a);
+
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.asset('assets/images/logo.png', height: 32),
-            const SizedBox(width: 10),
-            Text(
-              'Soft Skills Engine: Logbook',
-              style: Theme.of(context).appBarTheme.titleTextStyle?.copyWith(
-                fontSize: 17,
-                fontWeight: FontWeight.w600,
-                color:
-                    Theme.of(context).textTheme.titleLarge?.color ??
-                    Colors.blue,
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: Icon(
-              Provider.of<ThemeProvider>(context).themeMode == ThemeMode.dark
-                  ? Icons.wb_sunny_outlined
-                  : Icons.nightlight_round,
-              color:
-                  Theme.of(context).textTheme.titleLarge?.color ?? Colors.blue,
-            ),
-            tooltip:
-                Provider.of<ThemeProvider>(context).themeMode == ThemeMode.dark
-                    ? 'Светлая тема'
-                    : 'Тёмная тема',
-            onPressed: () {
-              Provider.of<ThemeProvider>(context, listen: false).toggleTheme();
-            },
-          ),
-          IconButton(
-            icon: Icon(
-              Icons.help_outline,
-              color:
-                  Theme.of(context).textTheme.titleLarge?.color ?? Colors.blue,
-            ),
-            tooltip: 'Инструкции',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const InstructionsScreen(),
-                ),
-              );
-            },
-          ),
-          IconButton(
-            icon: Icon(
-              Icons.download_outlined,
-              color:
-                  Theme.of(context).textTheme.titleLarge?.color ?? Colors.blue,
-            ),
-            tooltip: 'Экспорт в CSV',
-            onPressed: () {
-              _exportToCsv(context);
-            },
-          ),
-        ],
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              isDark
-                  ? CustomColors.darkGradientStart
-                  : CustomColors.lightGradientStart,
-              isDark
-                  ? CustomColors.darkGradientEnd
-                  : CustomColors.lightGradientEnd,
-            ],
-          ),
-        ),
+      backgroundColor:
+          isDark ? const Color(0xFF181A20) : const Color(0xFFF7F8FA),
+      body: SafeArea(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(18, 18, 18, 0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color:
-                        isDark ? CustomColors.darkCard : CustomColors.lightCard,
-                    borderRadius: BorderRadius.circular(18),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.06),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
+            // Крупный заголовок и кнопки действий
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 18, 24, 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Журнал самооценки',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : Colors.black,
+                        letterSpacing: -1,
+                      ),
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          Provider.of<ThemeProvider>(context).themeMode ==
+                                  ThemeMode.dark
+                              ? Icons.wb_sunny_outlined
+                              : Icons.nightlight_round,
+                          size: 24,
+                          color: kLogoGreen,
+                        ),
+                        tooltip:
+                            Provider.of<ThemeProvider>(context).themeMode ==
+                                    ThemeMode.dark
+                                ? 'Светлая тема'
+                                : 'Тёмная тема',
+                        onPressed: () {
+                          Provider.of<ThemeProvider>(
+                            context,
+                            listen: false,
+                          ).toggleTheme();
+                        },
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          Icons.download_outlined,
+                          size: 24,
+                          color: kLogoGreen,
+                        ),
+                        tooltip: 'Экспорт в CSV',
+                        onPressed: () => _exportToCsv(context),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          Icons.add_circle_outline,
+                          size: 24,
+                          color: kLogoGreen,
+                        ),
+                        tooltip: 'Новая запись',
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const AddEditEntryScreen(),
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),
-                  child: TextField(
-                    controller: _searchController,
-                    style: TextStyle(
-                      color:
-                          isDark
-                              ? CustomColors.darkText
-                              : CustomColors.lightText,
-                      fontSize: 17,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: 'Поиск записей...',
-                      hintStyle: TextStyle(color: Colors.grey[500]),
-                      prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
-                      suffixIcon: Consumer<DiaryProvider>(
-                        builder: (context, provider, child) {
-                          return provider.searchQuery.isNotEmpty
-                              ? IconButton(
-                                icon: const Icon(
-                                  Icons.clear,
-                                  color: Color(0xFF3A5BA0),
-                                ),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  provider.clearSearch();
-                                },
-                              )
-                              : const SizedBox.shrink();
-                        },
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(18),
-                        borderSide: BorderSide.none,
-                      ),
-                      filled: true,
-                      fillColor: Colors.transparent,
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 16,
-                        horizontal: 18,
-                      ),
-                    ),
-                    onChanged: (value) {
-                      context.read<DiaryProvider>().setSearchQuery(value);
-                    },
-                  ),
-                ),
+                ],
               ),
             ),
+            // Строка поиска
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'Поиск записей',
+                  prefixIcon: const Icon(Icons.search),
+                  suffixIcon: Consumer<DiaryProvider>(
+                    builder: (context, provider, child) {
+                      return provider.searchQuery.isNotEmpty
+                          ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _searchController.clear();
+                              provider.clearSearch();
+                            },
+                          )
+                          : const SizedBox.shrink();
+                    },
+                  ),
+                  filled: true,
+                  fillColor: isDark ? const Color(0xFF23242B) : Colors.white,
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 0,
+                    horizontal: 16,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+                onChanged: (value) {
+                  context.read<DiaryProvider>().setSearchQuery(value);
+                },
+              ),
+            ),
+            // Список записей
             Expanded(
               child: Consumer<DiaryProvider>(
                 builder: (context, provider, child) {
@@ -270,126 +286,93 @@ class _HomeScreenState extends State<HomeScreen> {
                   }
                   final entries = provider.filteredEntries;
                   if (entries.isEmpty) {
-                    final isDark =
-                        Theme.of(context).brightness == Brightness.dark;
                     return Center(
-                      child: Container(
-                        constraints: const BoxConstraints(maxWidth: 400),
-                        padding: const EdgeInsets.all(28),
-                        decoration: BoxDecoration(
-                          color: isDark ? Colors.black : Colors.white,
-                          borderRadius: BorderRadius.circular(22),
-                          boxShadow: [
-                            BoxShadow(
-                              color: (isDark ? Colors.white : Colors.black)
-                                  .withValues(alpha: 0.08),
-                              blurRadius: 18,
-                              offset: const Offset(0, 8),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.book_outlined,
+                            size: 64,
+                            color: isDark ? Colors.white38 : Colors.grey[400],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            provider.searchQuery.isNotEmpty
+                                ? 'Записи не найдены'
+                                : 'Журнал пуст',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.white70 : Colors.grey[600],
                             ),
-                          ],
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.book_outlined,
-                              size: 64,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.primary.withValues(alpha: 0.18),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            provider.searchQuery.isNotEmpty
+                                ? 'Попробуйте изменить поисковый запрос'
+                                : 'Нажмите + чтобы добавить первую запись',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: isDark ? Colors.white54 : Colors.grey[500],
                             ),
-                            const SizedBox(height: 18),
-                            Text(
-                              'Журнал пуст',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
-                                color:
-                                    Theme.of(
-                                      context,
-                                    ).textTheme.titleLarge?.color ??
-                                    Colors.blue,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              'Почитайте инструкцию, чтобы узнать, как вести журнал, а затем нажмите «Новая запись», чтобы добавить первую заметку.',
-                              style: TextStyle(
-                                fontSize: 15,
-                                color:
-                                    isDark
-                                        ? Colors.white70
-                                        : const Color(0xFF222B45),
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 22),
-                            Center(
-                              child: Container(
-                                height: 44,
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      Color(0xFF3A5BA0),
-                                      Color(0xFF6EC6F5),
-                                    ],
-                                    begin: Alignment.centerLeft,
-                                    end: Alignment.centerRight,
-                                  ),
-                                  borderRadius: BorderRadius.circular(18),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color:
-                                          Theme.of(context)
-                                              .textTheme
-                                              .titleLarge
-                                              ?.color
-                                              ?.withValues(alpha: 0.18) ??
-                                          Colors.blue.withValues(alpha: 0.18),
-                                      blurRadius: 12,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                child: FloatingActionButton.extended(
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder:
-                                            (context) =>
-                                                const InstructionsScreen(),
-                                      ),
-                                    );
-                                  },
-                                  icon: const Icon(
-                                    Icons.help_outline,
-                                    size: 22,
-                                  ),
-                                  label: const Text(
-                                    'Инструкция',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                                  backgroundColor: Colors.transparent,
-                                  elevation: 0,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
                       ),
                     );
                   }
-                  return ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: entries.length,
-                    itemBuilder: (context, index) {
-                      final entry = entries[index];
-                      return _buildEntryCard(context, entry, colorScheme);
-                    },
+                  return ListView(
+                    padding: const EdgeInsets.fromLTRB(0, 12, 0, 12),
+                    children: [
+                      // Заголовок записей
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+                        child: Text(
+                          provider.searchQuery.isNotEmpty
+                              ? 'Найденные записи (${entries.length})'
+                              : 'Записи',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.white : Colors.black,
+                          ),
+                        ),
+                      ),
+                      // Контейнер с записями
+                      Container(
+                        margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                        decoration: BoxDecoration(
+                          color:
+                              isDark ? const Color(0xFF23242B) : Colors.white,
+                          borderRadius: BorderRadius.circular(22),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.06),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: entries.length,
+                          separatorBuilder:
+                              (_, __) => Divider(
+                                height: 1,
+                                color:
+                                    isDark ? Colors.white12 : Colors.grey[200],
+                                thickness: 1,
+                                indent: 16,
+                                endIndent: 16,
+                              ),
+                          itemBuilder: (context, index) {
+                            final entry = entries[index];
+                            return _buildEntryCard(context, entry);
+                          },
+                        ),
+                      ),
+                    ],
                   );
                 },
               ),
@@ -397,291 +380,113 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(left: 18, right: 0, bottom: 0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Container(
-                height: 44,
-                margin: const EdgeInsets.only(right: 8),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF3A5BA0), Color(0xFF6EC6F5)],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                  ),
-                  borderRadius: BorderRadius.circular(18),
-                  boxShadow: [
-                    BoxShadow(
-                      color:
-                          Theme.of(context).textTheme.titleLarge?.color
-                              ?.withValues(alpha: 0.18) ??
-                          Colors.blue.withValues(alpha: 0.18),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: FloatingActionButton.extended(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const GoalsScreen(),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.psychology_outlined, size: 22),
-                  label: const Text(
-                    'Цели',
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
-                  ),
-                  backgroundColor: Colors.transparent,
-                  elevation: 0,
-                ),
-              ),
-            ),
-            Expanded(
-              child: Container(
-                height: 44,
-                margin: const EdgeInsets.only(left: 8),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF3A5BA0), Color(0xFF6EC6F5)],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                  ),
-                  borderRadius: BorderRadius.circular(18),
-                  boxShadow: [
-                    BoxShadow(
-                      color:
-                          Theme.of(context).textTheme.titleLarge?.color
-                              ?.withValues(alpha: 0.18) ??
-                          Colors.blue.withValues(alpha: 0.18),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: FloatingActionButton.extended(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AddEditEntryScreen(),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.add, size: 22),
-                  label: const Text(
-                    'Новая запись',
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
-                  ),
-                  backgroundColor: Colors.transparent,
-                  elevation: 0,
-                ),
-              ),
-            ),
-          ],
-        ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedTab,
+        onTap: _onTabTapped,
+        selectedItemColor: kLogoGreen,
+        unselectedItemColor: theme.iconTheme.color?.withValues(alpha: 0.6),
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.book_outlined),
+            label: 'Журнал',
+          ),
+          BottomNavigationBarItem(icon: Icon(Icons.stairs), label: 'Цели'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.help_outline),
+            label: 'Инструкции',
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildEntryCard(
-    BuildContext context,
-    DiaryEntry entry,
-    ColorScheme colorScheme,
-  ) {
+  Widget _buildEntryCard(BuildContext context, DiaryEntry entry) {
     final dateFormat = DateFormat('dd.MM.yyyy HH:mm');
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOutCubic,
-      margin: const EdgeInsets.only(bottom: 18),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: [
-          BoxShadow(
-            color:
-                Theme.of(
-                  context,
-                ).textTheme.titleLarge?.color?.withValues(alpha: 0.08) ??
-                Colors.blue.withValues(alpha: 0.08),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EntryDetailScreen(entry: entry),
           ),
-        ],
-        gradient:
-            isDark
-                ? null
-                : const LinearGradient(
-                  colors: [Color(0xFFF6F8FB), Color(0xFFEAF1FB)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-        color: isDark ? Colors.black : null,
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(22),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => EntryDetailScreen(entry: entry),
-              ),
-            );
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: IntrinsicHeight(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Container(
-                    width: 8,
-                    height: double.infinity,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      gradient: LinearGradient(
-                        colors: [
-                          Theme.of(context).textTheme.titleLarge?.color ??
-                              Colors.blue,
-                          Theme.of(context).textTheme.titleLarge?.color ??
-                              Colors.blue,
-                        ],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 18),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.access_time,
-                              size: 16,
-                              color:
-                                  Theme.of(context).textTheme.titleLarge?.color
-                                      ?.withValues(alpha: 0.7) ??
-                                  Colors.blue.withValues(alpha: 0.7),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              dateFormat.format(entry.dateTime),
-                              style: TextStyle(
-                                fontSize: 13,
-                                color:
-                                    Theme.of(context)
-                                        .textTheme
-                                        .titleLarge
-                                        ?.color
-                                        ?.withValues(alpha: 0.7) ??
-                                    Colors.blue.withValues(alpha: 0.7),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const Spacer(),
-                            PopupMenuButton<String>(
-                              onSelected: (value) {
-                                if (value == 'edit') {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder:
-                                          (context) =>
-                                              AddEditEntryScreen(entry: entry),
-                                    ),
-                                  );
-                                } else if (value == 'delete') {
-                                  _showDeleteDialog(context, entry);
-                                }
-                              },
-                              itemBuilder:
-                                  (BuildContext context) => [
-                                    const PopupMenuItem<String>(
-                                      value: 'edit',
-                                      child: Row(
-                                        children: [
-                                          Icon(Icons.edit, size: 18),
-                                          SizedBox(width: 8),
-                                          Text('Редактировать'),
-                                        ],
-                                      ),
-                                    ),
-                                    const PopupMenuItem<String>(
-                                      value: 'delete',
-                                      child: Row(
-                                        children: [
-                                          Icon(
-                                            Icons.delete,
-                                            size: 18,
-                                            color: Colors.red,
-                                          ),
-                                          SizedBox(width: 8),
-                                          Text(
-                                            'Удалить',
-                                            style: TextStyle(color: Colors.red),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                              icon: Icon(
-                                Icons.more_vert,
-                                color:
-                                    Theme.of(context)
-                                        .textTheme
-                                        .titleLarge
-                                        ?.color
-                                        ?.withValues(alpha: 0.7) ??
-                                    Colors.blue.withValues(alpha: 0.7),
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              elevation: 2,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          'Ситуация',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color:
-                                Theme.of(context).textTheme.titleLarge?.color ??
-                                Colors.blue,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          entry.situationDescription.isNotEmpty
-                              ? entry.situationDescription
-                              : 'Не указано',
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            // Дата
+            Text(
+              dateFormat.format(entry.dateTime),
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
               ),
             ),
-          ),
+            const SizedBox(width: 12),
+            // Текст ситуации
+            Expanded(
+              child: Text(
+                entry.situationDescription.isNotEmpty
+                    ? entry.situationDescription
+                    : 'Нет описания',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: isDark ? Colors.white70 : Colors.black87,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            // Меню действий
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                if (value == 'edit') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AddEditEntryScreen(entry: entry),
+                    ),
+                  );
+                } else if (value == 'delete') {
+                  _showDeleteDialog(context, entry);
+                }
+              },
+              itemBuilder:
+                  (BuildContext context) => [
+                    const PopupMenuItem<String>(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit, size: 18),
+                          SizedBox(width: 8),
+                          Text('Редактировать'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem<String>(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete, size: 18, color: Colors.red),
+                          SizedBox(width: 8),
+                          Text('Удалить', style: TextStyle(color: Colors.red)),
+                        ],
+                      ),
+                    ),
+                  ],
+              icon: Icon(Icons.more_vert, color: Colors.grey[600], size: 20),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              elevation: 2,
+            ),
+          ],
         ),
       ),
     );

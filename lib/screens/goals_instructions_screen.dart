@@ -1,434 +1,388 @@
 import 'package:flutter/material.dart';
-import '../main.dart';
 import 'instructions_screen.dart';
+import 'home_screen.dart';
+import 'goals_screen.dart';
 
-class GoalsInstructionsScreen extends StatelessWidget {
+class GoalsInstructionsScreen extends StatefulWidget {
   const GoalsInstructionsScreen({super.key});
 
+  @override
+  State<GoalsInstructionsScreen> createState() =>
+      _GoalsInstructionsScreenState();
+}
+
+class _GoalsInstructionsScreenState extends State<GoalsInstructionsScreen> {
   final String vimeoVideoUrl =
       'https://player.vimeo.com/video/1234567890'; // Заменить на реальный URL
+  int _selectedTab = 2; // 0 - Журнал, 1 - Цели, 2 - Инструкции
+
+  void _onTabTapped(int index) {
+    if (index == _selectedTab) return;
+    if (index == 0) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
+    } else if (index == 1) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const GoalsScreen()),
+      );
+    }
+    setState(() {
+      _selectedTab = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    const Color kLogoGreen = Color(0xFF2f855a);
+
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              isDark
-                  ? CustomColors.darkGradientStart
-                  : CustomColors.lightGradientStart,
-              isDark
-                  ? CustomColors.darkGradientEnd
-                  : CustomColors.lightGradientEnd,
-            ],
-          ),
-        ),
-        child: CustomScrollView(
-          slivers: [
-            SliverAppBar(
-              pinned: true,
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              leading: IconButton(
-                icon: const Icon(
-                  Icons.arrow_back_ios_new,
-                  color: Color(0xFF3A5BA0),
+      backgroundColor:
+          isDark ? const Color(0xFF181A20) : const Color(0xFFF7F8FA),
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Крупный заголовок
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 18, 24, 0),
+              child: Text(
+                'Инструкции: цели',
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black,
+                  letterSpacing: -1,
                 ),
-                onPressed: () => Navigator.of(context).pop(),
               ),
-              title: Row(
-                mainAxisSize: MainAxisSize.min,
+            ),
+            // Контент
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(0, 12, 0, 12),
                 children: [
-                  Image.asset('assets/images/logo.png', height: 28),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Инструкции: цели',
-                    style: Theme.of(
-                      context,
-                    ).appBarTheme.titleTextStyle?.copyWith(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w600,
-                      color:
-                          Theme.of(context).textTheme.titleLarge?.color ??
-                          Colors.blue,
+                  // Контейнер с инструкциями
+                  Container(
+                    margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF23242B) : Colors.white,
+                      borderRadius: BorderRadius.circular(22),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.06),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        // Видео-инструкция
+                        _buildSectionItem(
+                          context: context,
+                          title: 'Видео-инструкция',
+                          description:
+                              'Подробное объяснение того, как правильно ставить и достигать цели',
+                          icon: Icons.play_circle_outline,
+                          isFirst: true,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => VideoPlayerScreen(
+                                      videoUrl: vimeoVideoUrl,
+                                      title: 'Видео-инструкция',
+                                    ),
+                              ),
+                            );
+                          },
+                        ),
+                        _buildDivider(isDark),
+                        // Как формировать цели
+                        _buildSectionItem(
+                          context: context,
+                          title: 'Как формировать цели',
+                          description:
+                              'Принципы создания эффективных и достижимых целей',
+                          icon: Icons.flag_outlined,
+                          content: _buildGoalFormationContent(context, isDark),
+                        ),
+                        _buildDivider(isDark),
+                        // Методы достижения
+                        _buildSectionItem(
+                          context: context,
+                          title: 'Методы достижения',
+                          description:
+                              'Проверенные стратегии для успешного выполнения целей',
+                          icon: Icons.trending_up,
+                          content: _buildAchievementMethodsContent(
+                            context,
+                            isDark,
+                          ),
+                        ),
+                        _buildDivider(isDark),
+                        // Отслеживание прогресса
+                        _buildSectionItem(
+                          context: context,
+                          title: 'Отслеживание прогресса',
+                          description:
+                              'Как контролировать движение к цели и корректировать планы',
+                          icon: Icons.analytics_outlined,
+                          content: _buildProgressTrackingContent(
+                            context,
+                            isDark,
+                          ),
+                          isLast: true,
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Информация о программе EightFaces
+                  Container(
+                    margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF23242B) : Colors.white,
+                      borderRadius: BorderRadius.circular(22),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.06),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        children: [
+                          // Заголовок с логотипом
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              // Компактный логотип
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.asset(
+                                    'assets/images/logo.png',
+                                    fit: BoxFit.cover,
+                                    errorBuilder:
+                                        (context, error, stackTrace) => Icon(
+                                          Icons.school,
+                                          color: kLogoGreen,
+                                          size: 24,
+                                        ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              // Заголовок
+                              Text(
+                                'EightFaces: Soft Skills Engine',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark ? Colors.white : Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          // Описание
+                          Text(
+                            'Это приложение создано как часть онлайн-программы EightFaces: Soft Skills Engine. Подробнее о курсе — на сайте eightfaces.ru.',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: isDark ? Colors.white70 : Colors.grey[700],
+                              height: 1.5,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
-              ),
-              centerTitle: true,
-              iconTheme: IconThemeData(
-                color:
-                    Theme.of(context).textTheme.titleLarge?.color ??
-                    Colors.blue,
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Видео-инструкция
-                    Text(
-                      'Видео-инструкция',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color:
-                            Theme.of(context).textTheme.titleLarge?.color ??
-                            Colors.blue,
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color:
-                            isDark
-                                ? CustomColors.darkCard
-                                : CustomColors.lightCard,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color:
-                                Theme.of(context).textTheme.titleLarge?.color
-                                    ?.withValues(alpha: 0.06) ??
-                                Colors.blue.withValues(alpha: 0.06),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          Container(
-                            width: 80,
-                            height: 80,
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFF3A5BA0), Color(0xFF6EC6F5)],
-                                begin: Alignment.centerLeft,
-                                end: Alignment.centerRight,
-                              ),
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color:
-                                      Theme.of(context)
-                                          .textTheme
-                                          .titleLarge
-                                          ?.color
-                                          ?.withValues(alpha: 0.18) ??
-                                      Colors.blue.withValues(alpha: 0.18),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(40),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder:
-                                          (context) => VideoPlayerScreen(
-                                            videoUrl: vimeoVideoUrl,
-                                            title: 'Видео-инструкция',
-                                          ),
-                                    ),
-                                  );
-                                },
-                                child: const Icon(
-                                  Icons.play_arrow,
-                                  color: Colors.white,
-                                  size: 40,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Посмотреть видео-инструкцию',
-                            style: Theme.of(
-                              context,
-                            ).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).textTheme.titleLarge?.color ??
-                                  Colors.blue,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Подробное объяснение того, как правильно ставить и достигать цели',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color:
-                                  isDark ? Colors.white70 : Color(0xFF222B45),
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 28),
-                    // Блок "Как формировать цели"
-                    Text(
-                      'Как формировать цели',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color:
-                            Theme.of(context).textTheme.titleLarge?.color ??
-                            Colors.blue,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color:
-                            isDark
-                                ? CustomColors.darkCard
-                                : CustomColors.lightCard,
-                        borderRadius: BorderRadius.circular(14),
-                        boxShadow: [
-                          BoxShadow(
-                            color:
-                                Theme.of(context).textTheme.titleLarge?.color
-                                    ?.withValues(alpha: 0.06) ??
-                                Colors.blue.withValues(alpha: 0.06),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Ставьте цели по принципам SMART: конкретные, измеримые, достижимые, релевантные и ограниченные во времени. Это поможет вам развивать soft skills более эффективно.',
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: isDark ? Colors.white : Color(0xFF222B45),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          _instructionRow(
-                            context,
-                            Icons.center_focus_strong,
-                            'Specific — Конкретные',
-                            'Цель должна быть ясной и понятной. Например: "Провести презентацию проекта".',
-                          ),
-                          const SizedBox(height: 12),
-                          _instructionRow(
-                            context,
-                            Icons.straighten,
-                            'Measurable — Измеримые',
-                            'Должна быть возможность оценить результат. Например: "3 встречи с клиентами".',
-                          ),
-                          const SizedBox(height: 12),
-                          _instructionRow(
-                            context,
-                            Icons.trending_up,
-                            'Achievable — Достижимые',
-                            'Цель должна быть реалистичной с учётом ваших возможностей и ресурсов.',
-                          ),
-                          const SizedBox(height: 12),
-                          _instructionRow(
-                            context,
-                            Icons.track_changes,
-                            'Relevant — Релевантные',
-                            'Цель должна соответствовать вашим потребностям в развитии soft skills.',
-                          ),
-                          const SizedBox(height: 12),
-                          _instructionRow(
-                            context,
-                            Icons.schedule,
-                            'Time-bound — Ограниченные во времени',
-                            'Установите конкретный срок выполнения. Например: "до конца недели".',
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 28),
-                    // Блок "Что означают иконки"
-                    Text(
-                      'Что означают иконки',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color:
-                            Theme.of(context).textTheme.titleLarge?.color ??
-                            Colors.blue,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    _iconCard(
-                      context,
-                      Icons.add_circle_outline,
-                      'Добавить цель',
-                      'Создаёт новую цель в списке.',
-                    ),
-                    const SizedBox(height: 12),
-                    _iconCard(
-                      context,
-                      Icons.check_circle_outline,
-                      'Отметить выполнение',
-                      'Отмечает цель как выполненную или невыполненную.',
-                    ),
-                    const SizedBox(height: 12),
-                    _iconCard(
-                      context,
-                      Icons.edit,
-                      'Редактировать',
-                      'Позволяет изменить текст существующей цели.',
-                    ),
-                    const SizedBox(height: 12),
-                    _iconCard(
-                      context,
-                      Icons.delete,
-                      'Удалить',
-                      'Удаляет выбранную цель из списка.',
-                    ),
-                    const SizedBox(height: 12),
-                    _iconCard(
-                      context,
-                      Icons.drag_indicator,
-                      'Перетаскивание',
-                      'Позволяет изменить порядок целей в режиме редактирования.',
-                    ),
-                    const SizedBox(height: 12),
-                    _iconCard(
-                      context,
-                      Icons.analytics_outlined,
-                      'Статистика',
-                      'Показывает общее количество целей и процент выполнения.',
-                    ),
-                    const SizedBox(height: 20),
-                  ],
-                ),
               ),
             ),
           ],
         ),
       ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedTab,
+        onTap: _onTabTapped,
+        selectedItemColor: kLogoGreen,
+        unselectedItemColor: theme.iconTheme.color?.withValues(alpha: 0.6),
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.book_outlined),
+            label: 'Журнал',
+          ),
+          BottomNavigationBarItem(icon: Icon(Icons.stairs), label: 'Цели'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.help_outline),
+            label: 'Инструкции',
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _instructionRow(
-    BuildContext context,
-    IconData icon,
-    String title,
-    String text,
-  ) {
+  Widget _buildDivider(bool isDark) {
+    return Divider(
+      height: 1,
+      color: isDark ? Colors.white12 : Colors.grey[200],
+      thickness: 1,
+      indent: 16,
+      endIndent: 16,
+    );
+  }
+
+  Widget _buildSectionItem({
+    required BuildContext context,
+    required String title,
+    required String description,
+    required IconData icon,
+    bool isFirst = false,
+    bool isLast = false,
+    Widget? content,
+    VoidCallback? onTap,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Row(
+    const Color kLogoGreen = Color(0xFF2f855a);
+
+    return ExpansionTile(
+      tilePadding: EdgeInsets.fromLTRB(
+        16,
+        isFirst ? 16 : 8,
+        16,
+        content == null ? (isLast ? 16 : 8) : 0,
+      ),
+      childrenPadding: EdgeInsets.fromLTRB(16, 0, 16, isLast ? 16 : 12),
+      leading: Icon(icon, color: kLogoGreen, size: 24),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: isDark ? Colors.white : Colors.black87,
+        ),
+      ),
+      subtitle: Text(
+        description,
+        style: TextStyle(
+          fontSize: 14,
+          color: isDark ? Colors.white70 : Colors.grey[600],
+        ),
+      ),
+      onExpansionChanged: onTap != null ? (_) => onTap() : null,
+      children: content != null ? [content] : [],
+    );
+  }
+
+  Widget _buildGoalFormationContent(BuildContext context, bool isDark) {
+    final principles = [
+      '• Конкретность - цель должна быть четко сформулирована',
+      '• Измеримость - прогресс должен быть измеримым',
+      '• Достижимость - цель должна быть реалистичной',
+      '• Релевантность - цель должна быть важной для вас',
+      '• Определенность во времени - установите конкретные сроки',
+      '• Разбивайте большие цели на подцели',
+      '• Записывайте цели и регулярно их пересматривайте',
+    ];
+
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(
-          icon,
-          color: Theme.of(context).textTheme.titleLarge?.color ?? Colors.blue,
-          size: 26,
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color:
-                      Theme.of(context).textTheme.titleLarge?.color ??
-                      Colors.blue,
+      children:
+          principles
+              .map(
+                (principle) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: Text(
+                    principle,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isDark ? Colors.white70 : Colors.grey[700],
+                      height: 1.4,
+                    ),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                text,
-                style: TextStyle(
-                  fontSize: 15,
-                  color: isDark ? Colors.white : Color(0xFF222B45),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+              )
+              .toList(),
     );
   }
 
-  Widget _iconCard(
-    BuildContext context,
-    IconData icon,
-    String title,
-    String text,
-  ) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? CustomColors.darkCard : CustomColors.lightCard,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color:
-                Theme.of(
-                  context,
-                ).textTheme.titleLarge?.color?.withValues(alpha: 0.06) ??
-                Colors.blue.withValues(alpha: 0.06),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            icon,
-            color: Theme.of(context).textTheme.titleLarge?.color ?? Colors.blue,
-            size: 26,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color:
-                        Theme.of(context).textTheme.titleLarge?.color ??
-                        Colors.blue,
+  Widget _buildAchievementMethodsContent(BuildContext context, bool isDark) {
+    final methods = [
+      '• Создавайте план действий с конкретными шагами',
+      '• Используйте принцип "малых побед" - начинайте с простого',
+      '• Ведите ежедневный учет прогресса',
+      '• Найдите партнера по целям для взаимной поддержки',
+      '• Визуализируйте достижение цели каждый день',
+      '• Награждайте себя за промежуточные достижения',
+      '• Изучайте опыт тех, кто уже достиг подобных целей',
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children:
+          methods
+              .map(
+                (method) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: Text(
+                    method,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isDark ? Colors.white70 : Colors.grey[700],
+                      height: 1.4,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  text,
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: isDark ? CustomColors.darkText : Color(0xFF222B45),
+              )
+              .toList(),
+    );
+  }
+
+  Widget _buildProgressTrackingContent(BuildContext context, bool isDark) {
+    final tips = [
+      '• Ведите ежедневник для отслеживания действий',
+      '• Еженедельно анализируйте прогресс и корректируйте планы',
+      '• Используйте метрики для измерения прогресса',
+      '• Отмечайте препятствия и ищите способы их преодоления',
+      '• Празднуйте достижения, даже маленькие',
+      '• Будьте готовы изменить подход, если что-то не работает',
+      '• Регулярно напоминайте себе о важности цели',
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children:
+          tips
+              .map(
+                (tip) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: Text(
+                    tip,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isDark ? Colors.white70 : Colors.grey[700],
+                      height: 1.4,
+                    ),
                   ),
                 ),
-              ],
-            ),
-          ),
-        ],
-      ),
+              )
+              .toList(),
     );
   }
 }

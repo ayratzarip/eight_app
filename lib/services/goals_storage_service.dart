@@ -74,12 +74,12 @@ class GoalsStorageService {
     final now = DateTime.now();
     final id = _uuid.v4();
 
-    // Определяем новый порядковый номер
-    final maxOrder =
+    // Определяем новый порядковый номер (делаем новую цель первой)
+    final minOrder =
         goals.isEmpty
-            ? -1
-            : goals.map((g) => g.order).reduce((a, b) => a > b ? a : b);
-    final newOrder = maxOrder + 1;
+            ? 0
+            : goals.map((g) => g.order).reduce((a, b) => a < b ? a : b);
+    final newOrder = minOrder - 1;
 
     final newGoal = Goal(
       id: id,

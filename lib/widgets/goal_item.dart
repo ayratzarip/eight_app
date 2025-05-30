@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/goal.dart';
 
+const Color kLogoGreen = Color(0xFF2f855a);
+
 class GoalItem extends StatefulWidget {
   final Goal goal;
   final bool isEditMode;
@@ -11,6 +13,7 @@ class GoalItem extends StatefulWidget {
   final Function(String) onSaveEdit;
   final VoidCallback onCancelEdit;
   final VoidCallback onDelete;
+  final String? searchQuery;
 
   const GoalItem({
     super.key,
@@ -23,6 +26,7 @@ class GoalItem extends StatefulWidget {
     required this.onSaveEdit,
     required this.onCancelEdit,
     required this.onDelete,
+    this.searchQuery,
   });
 
   @override
@@ -64,6 +68,80 @@ class _GoalItemState extends State<GoalItem> {
     }
   }
 
+  Widget _buildHighlightedText(String text, String? query) {
+    if (query == null || query.isEmpty) {
+      return Text(
+        text,
+        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+          fontSize: widget.isFirst && !widget.goal.isCompleted ? 18 : 16,
+          fontWeight:
+              widget.isFirst && !widget.goal.isCompleted
+                  ? FontWeight.w600
+                  : FontWeight.normal,
+          decoration:
+              widget.goal.isCompleted ? TextDecoration.lineThrough : null,
+          color:
+              widget.goal.isCompleted
+                  ? Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.5)
+                  : Theme.of(context).textTheme.bodyLarge?.color,
+        ),
+      );
+    }
+
+    final lowerText = text.toLowerCase();
+    final lowerQuery = query.toLowerCase();
+    final spans = <TextSpan>[];
+
+    int start = 0;
+    int index = lowerText.indexOf(lowerQuery);
+
+    while (index != -1) {
+      if (index > start) {
+        spans.add(TextSpan(text: text.substring(start, index)));
+      }
+
+      spans.add(
+        TextSpan(
+          text: text.substring(index, index + query.length),
+          style: TextStyle(
+            backgroundColor: kLogoGreen.withValues(alpha: 0.3),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      );
+
+      start = index + query.length;
+      index = lowerText.indexOf(lowerQuery, start);
+    }
+
+    if (start < text.length) {
+      spans.add(TextSpan(text: text.substring(start)));
+    }
+
+    return RichText(
+      text: TextSpan(
+        children: spans,
+        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+          fontSize: widget.isFirst && !widget.goal.isCompleted ? 18 : 16,
+          fontWeight:
+              widget.isFirst && !widget.goal.isCompleted
+                  ? FontWeight.w600
+                  : FontWeight.normal,
+          decoration:
+              widget.goal.isCompleted ? TextDecoration.lineThrough : null,
+          color:
+              widget.goal.isCompleted
+                  ? Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.5)
+                  : Theme.of(context).textTheme.bodyLarge?.color,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -88,28 +166,23 @@ class _GoalItemState extends State<GoalItem> {
           ),
           child: Row(
             children: [
-              // Drag handle для режима редактирования
               if (widget.isEditMode && !widget.isEditing)
-                ReorderableDragStartListener(
-                  index: 0, // Индекс будет переопределён ReorderableListView
-                  child: Container(
-                    margin: const EdgeInsets.only(right: 12),
-                    child: Icon(
-                      Icons.drag_handle,
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
-                      size: 20,
-                    ),
+                Container(
+                  margin: const EdgeInsets.only(left: 4, right: 12),
+                  child: Icon(
+                    Icons.drag_handle,
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                    size: 20,
                   ),
                 ),
 
-              // Checkbox
               Checkbox(
                 value: widget.goal.isCompleted,
                 onChanged:
                     widget.isEditMode && widget.isEditing
                         ? null
                         : (_) => widget.onToggleComplete(),
-                activeColor: theme.colorScheme.primary,
+                activeColor: kLogoGreen,
                 checkColor: theme.colorScheme.onPrimary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(4),
@@ -118,7 +191,6 @@ class _GoalItemState extends State<GoalItem> {
 
               const SizedBox(width: 12),
 
-              // Текст цели или поле редактирования
               Expanded(
                 child:
                     widget.isEditing
@@ -139,36 +211,15 @@ class _GoalItemState extends State<GoalItem> {
                           ),
                           onSubmitted: (_) => _saveEdit(),
                         )
-                        : Text(
+                        : _buildHighlightedText(
                           widget.goal.text,
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            fontSize:
-                                widget.isFirst && !widget.goal.isCompleted
-                                    ? 18
-                                    : 16,
-                            fontWeight:
-                                widget.isFirst && !widget.goal.isCompleted
-                                    ? FontWeight.w600
-                                    : FontWeight.normal,
-                            decoration:
-                                widget.goal.isCompleted
-                                    ? TextDecoration.lineThrough
-                                    : null,
-                            color:
-                                widget.goal.isCompleted
-                                    ? theme.colorScheme.onSurface.withValues(
-                                      alpha: 0.5,
-                                    )
-                                    : theme.textTheme.bodyLarge?.color,
-                          ),
+                          widget.searchQuery,
                         ),
               ),
 
-              // Кнопки действий в режиме редактирования
               if (widget.isEditMode) ...[
                 const SizedBox(width: 8),
                 if (widget.isEditing) ...[
-                  // Кнопки сохранения и отмены
                   IconButton(
                     icon: Icon(Icons.check, color: theme.colorScheme.primary),
                     onPressed: _saveEdit,
@@ -188,7 +239,6 @@ class _GoalItemState extends State<GoalItem> {
                     padding: EdgeInsets.zero,
                   ),
                 ] else ...[
-                  // Кнопки редактирования и удаления
                   IconButton(
                     icon: Icon(
                       Icons.edit_outlined,

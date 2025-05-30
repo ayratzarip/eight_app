@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/diary_entry.dart';
 import '../providers/diary_provider.dart';
-import '../main.dart';
 
 enum FormStep {
   situation,
@@ -489,41 +488,22 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
     IconData icon,
   ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    String title = _getStepTitle(step);
+    const Color kLogoGreen = Color(0xFF2f855a);
+
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: SingleChildScrollView(
-        // Добавим SingleChildScrollView и сюда на всякий случай
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(
-                  icon,
-                  size: 28,
-                  color:
-                      Theme.of(context).textTheme.titleLarge?.color ??
-                      Colors.blue,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
             TextField(
               controller: controller,
               maxLines: 5,
               minLines: 3,
               style: TextStyle(
                 fontSize: 16,
-                color: isDark ? CustomColors.darkText : Color(0xFF222B45),
+                color: isDark ? Colors.white : Colors.black87,
               ),
               decoration: InputDecoration(
                 hintText: hintText,
@@ -533,16 +513,10 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color:
-                        Theme.of(context).textTheme.titleLarge?.color ??
-                        Colors.blue,
-                    width: 2,
-                  ),
+                  borderSide: BorderSide(color: kLogoGreen, width: 2),
                 ),
                 filled: true,
-                fillColor:
-                    isDark ? CustomColors.darkCard : CustomColors.lightCard,
+                fillColor: isDark ? const Color(0xFF23242B) : Colors.white,
               ),
             ),
             const SizedBox(height: 20),
@@ -550,7 +524,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
               'Дата и время: ${_entryDateTime.day}.${_entryDateTime.month}.${_entryDateTime.year} ${_entryDateTime.hour}:${_entryDateTime.minute.toString().padLeft(2, '0')}',
               style: TextStyle(
                 fontSize: 12,
-                color: isDark ? Colors.white70 : Color(0xFF222B45),
+                color: isDark ? Colors.white70 : Colors.grey[600],
               ),
             ),
           ],
@@ -562,43 +536,22 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
   // Новый метод для построения UI шага "Фокус внимания"
   Widget _buildAttentionStep() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    String title = _getStepTitle(FormStep.attention);
-    IconData icon = Icons.center_focus_strong;
+    const Color kLogoGreen = Color(0xFF2f855a);
 
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: SingleChildScrollView(
-        // Добавляем SingleChildScrollView для прокрутки
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(
-                  icon,
-                  size: 28,
-                  color:
-                      Theme.of(context).textTheme.titleLarge?.color ??
-                      Colors.blue,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
             Text(
               _selectedAttentionOption == null
                   ? 'Выберите один из вариантов или опишите свой:'
                   : 'Выбран вариант: "$_selectedAttentionOption". Можете уточнить ниже.',
               style: TextStyle(
                 fontSize: 15,
-                color: isDark ? Colors.white70 : Color(0xFF222B45),
+                color: isDark ? Colors.white70 : Colors.grey[600],
               ),
             ),
             const SizedBox(height: 8),
@@ -612,9 +565,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                     _selectedAttentionOption = value;
                   });
                 },
-                activeColor:
-                    Theme.of(context).textTheme.titleLarge?.color ??
-                    Colors.blue,
+                activeColor: kLogoGreen,
                 contentPadding: EdgeInsets.zero,
               );
             }),
@@ -625,7 +576,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
               minLines: 2,
               style: TextStyle(
                 fontSize: 16,
-                color: isDark ? CustomColors.darkText : Color(0xFF222B45),
+                color: isDark ? Colors.white : Colors.black87,
               ),
               decoration: InputDecoration(
                 hintText:
@@ -638,16 +589,10 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color:
-                        Theme.of(context).textTheme.titleLarge?.color ??
-                        Colors.blue,
-                    width: 2,
-                  ),
+                  borderSide: BorderSide(color: kLogoGreen, width: 2),
                 ),
                 filled: true,
-                fillColor:
-                    isDark ? CustomColors.darkCard : CustomColors.lightCard,
+                fillColor: isDark ? const Color(0xFF23242B) : Colors.white,
               ),
             ),
             const SizedBox(height: 20),
@@ -655,7 +600,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
               'Дата и время: ${_entryDateTime.day}.${_entryDateTime.month}.${_entryDateTime.year} ${_entryDateTime.hour}:${_entryDateTime.minute.toString().padLeft(2, '0')}',
               style: TextStyle(
                 fontSize: 12,
-                color: isDark ? Colors.white70 : Color(0xFF222B45),
+                color: isDark ? Colors.white70 : Colors.grey[600],
               ),
             ),
           ],
@@ -667,8 +612,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
   // Новый метод для построения UI шага "Мысли"
   Widget _buildThoughtsStep() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    String title = _getStepTitle(FormStep.thoughts);
-    IconData icon = Icons.psychology;
+    const Color kLogoGreen = Color(0xFF2f855a);
 
     return Padding(
       padding: const EdgeInsets.all(24.0),
@@ -677,32 +621,13 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(
-                  icon,
-                  size: 28,
-                  color:
-                      Theme.of(context).textTheme.titleLarge?.color ??
-                      Colors.blue,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
             Text(
               _selectedThoughtOption == null
                   ? 'Какие мысли у вас возникали? Выберите один из вариантов или опишите свои:'
                   : 'Выбран вариант: "$_selectedThoughtOption".',
               style: TextStyle(
                 fontSize: 15,
-                color: isDark ? Colors.white70 : Color(0xFF222B45),
+                color: isDark ? Colors.white70 : Colors.grey[600],
               ),
             ),
             const SizedBox(height: 8),
@@ -721,9 +646,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                     }
                   });
                 },
-                activeColor:
-                    Theme.of(context).textTheme.titleLarge?.color ??
-                    Colors.blue,
+                activeColor: kLogoGreen,
                 contentPadding: EdgeInsets.zero,
               );
             }),
@@ -735,7 +658,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
               minLines: 2,
               style: TextStyle(
                 fontSize: 16,
-                color: isDark ? CustomColors.darkText : Color(0xFF222B45),
+                color: isDark ? Colors.white : Colors.black87,
               ),
               decoration: InputDecoration(
                 hintText:
@@ -748,16 +671,10 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color:
-                        Theme.of(context).textTheme.titleLarge?.color ??
-                        Colors.blue,
-                    width: 2,
-                  ),
+                  borderSide: BorderSide(color: kLogoGreen, width: 2),
                 ),
                 filled: true,
-                fillColor:
-                    isDark ? CustomColors.darkCard : CustomColors.lightCard,
+                fillColor: isDark ? const Color(0xFF23242B) : Colors.white,
               ),
             ),
             const SizedBox(height: 20),
@@ -765,7 +682,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
               'Дата и время: ${_entryDateTime.day}.${_entryDateTime.month}.${_entryDateTime.year} ${_entryDateTime.hour}:${_entryDateTime.minute.toString().padLeft(2, '0')}',
               style: TextStyle(
                 fontSize: 12,
-                color: isDark ? Colors.white70 : Color(0xFF222B45),
+                color: isDark ? Colors.white70 : Colors.grey[600],
               ),
             ),
           ],
@@ -784,8 +701,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
   // Новый метод для построения UI шага "Телесные ощущения"
   Widget _buildBodySensationsStep() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    String title = _getStepTitle(FormStep.bodySensations);
-    IconData icon = Icons.accessibility_new;
+    const Color kLogoGreen = Color(0xFF2f855a);
 
     return Padding(
       padding: const EdgeInsets.all(24.0),
@@ -794,30 +710,11 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(
-                  icon,
-                  size: 28,
-                  color:
-                      Theme.of(context).textTheme.titleLarge?.color ??
-                      Colors.blue,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
             Text(
               'Оцените интенсивность ощущений:',
               style: TextStyle(
                 fontSize: 16,
-                color: isDark ? Colors.white70 : Color(0xFF222B45),
+                color: isDark ? Colors.white70 : Colors.grey[600],
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -897,7 +794,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
               'Опишите ваши телесные ощущения:',
               style: TextStyle(
                 fontSize: 16,
-                color: isDark ? Colors.white70 : Color(0xFF222B45),
+                color: isDark ? Colors.white70 : Colors.grey[600],
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -908,7 +805,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
               minLines: 2,
               style: TextStyle(
                 fontSize: 16,
-                color: isDark ? CustomColors.darkText : Color(0xFF222B45),
+                color: isDark ? Colors.white : Colors.black87,
               ),
               decoration: InputDecoration(
                 hintText:
@@ -919,16 +816,10 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color:
-                        Theme.of(context).textTheme.titleLarge?.color ??
-                        Colors.blue,
-                    width: 2,
-                  ),
+                  borderSide: BorderSide(color: kLogoGreen, width: 2),
                 ),
                 filled: true,
-                fillColor:
-                    isDark ? CustomColors.darkCard : CustomColors.lightCard,
+                fillColor: isDark ? const Color(0xFF23242B) : Colors.white,
               ),
             ),
             const SizedBox(height: 20),
@@ -936,7 +827,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
               'Дата и время: ${_entryDateTime.day}.${_entryDateTime.month}.${_entryDateTime.year} ${_entryDateTime.hour}:${_entryDateTime.minute.toString().padLeft(2, '0')}',
               style: TextStyle(
                 fontSize: 12,
-                color: isDark ? Colors.white70 : Color(0xFF222B45),
+                color: isDark ? Colors.white70 : Colors.grey[600],
               ),
             ),
           ],
@@ -948,8 +839,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
   // Новый метод для построения UI шага "Ваши действия"
   Widget _buildActionsStep() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    String title = _getStepTitle(FormStep.actions);
-    IconData icon = Icons.directions_run;
+    const Color kLogoGreen = Color(0xFF2f855a);
 
     return Padding(
       padding: const EdgeInsets.all(24.0),
@@ -958,30 +848,11 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(
-                  icon,
-                  size: 28,
-                  color:
-                      Theme.of(context).textTheme.titleLarge?.color ??
-                      Colors.blue,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
             Text(
               'Что вы предприняли? Какие действия совершили?',
               style: TextStyle(
                 fontSize: 16,
-                color: isDark ? Colors.white70 : Color(0xFF222B45),
+                color: isDark ? Colors.white70 : Colors.grey[600],
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -992,7 +863,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
               minLines: 2,
               style: TextStyle(
                 fontSize: 16,
-                color: isDark ? CustomColors.darkText : Color(0xFF222B45),
+                color: isDark ? Colors.white : Colors.black87,
               ),
               decoration: InputDecoration(
                 hintText: 'Опишите ваши действия...',
@@ -1002,16 +873,10 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color:
-                        Theme.of(context).textTheme.titleLarge?.color ??
-                        Colors.blue,
-                    width: 2,
-                  ),
+                  borderSide: BorderSide(color: kLogoGreen, width: 2),
                 ),
                 filled: true,
-                fillColor:
-                    isDark ? CustomColors.darkCard : CustomColors.lightCard,
+                fillColor: isDark ? const Color(0xFF23242B) : Colors.white,
               ),
             ),
             const SizedBox(height: 24),
@@ -1019,7 +884,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
               'Каков был результат ваших действий?',
               style: TextStyle(
                 fontSize: 16,
-                color: isDark ? Colors.white70 : Color(0xFF222B45),
+                color: isDark ? Colors.white70 : Colors.grey[600],
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -1034,9 +899,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                     _selectedActionResult = value;
                   });
                 },
-                activeColor:
-                    Theme.of(context).textTheme.titleLarge?.color ??
-                    Colors.blue,
+                activeColor: kLogoGreen,
                 contentPadding: EdgeInsets.zero,
               );
             }),
@@ -1045,7 +908,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
               'Дата и время: ${_entryDateTime.day}.${_entryDateTime.month}.${_entryDateTime.year} ${_entryDateTime.hour}:${_entryDateTime.minute.toString().padLeft(2, '0')}',
               style: TextStyle(
                 fontSize: 12,
-                color: isDark ? Colors.white70 : Color(0xFF222B45),
+                color: isDark ? Colors.white70 : Colors.grey[600],
               ),
             ),
           ],
@@ -1057,8 +920,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
   // Метод для построения UI шага "Что делать в будущем?"
   Widget _buildFutureActionsStep() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    String title = _getStepTitle(FormStep.futureActions);
-    IconData icon = Icons.lightbulb;
+    const Color kLogoGreen = Color(0xFF2f855a);
 
     return Padding(
       padding: const EdgeInsets.all(24.0),
@@ -1067,30 +929,11 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(
-                  icon,
-                  size: 28,
-                  color:
-                      Theme.of(context).textTheme.titleLarge?.color ??
-                      Colors.blue,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
             Text(
               'Оцените вашу готовность к подобным ситуациям в будущем:',
               style: TextStyle(
                 fontSize: 16,
-                color: isDark ? Colors.white70 : Color(0xFF222B45),
+                color: isDark ? Colors.white70 : Colors.grey[600],
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -1106,9 +949,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                     _selectedFutureActionOption = value;
                   });
                 },
-                activeColor:
-                    Theme.of(context).textTheme.titleLarge?.color ??
-                    Colors.blue,
+                activeColor: kLogoGreen,
                 contentPadding: EdgeInsets.zero,
               );
             }),
@@ -1125,7 +966,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                       'Что именно вы планируете делать?',
                       style: TextStyle(
                         fontSize: 16,
-                        color: isDark ? Colors.white70 : Color(0xFF222B45),
+                        color: isDark ? Colors.white70 : Colors.grey[600],
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -1136,8 +977,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                       minLines: 2,
                       style: TextStyle(
                         fontSize: 16,
-                        color:
-                            isDark ? CustomColors.darkText : Color(0xFF222B45),
+                        color: isDark ? Colors.white : Colors.black87,
                       ),
                       decoration: InputDecoration(
                         hintText: 'Опишите ваши будущие шаги...',
@@ -1147,18 +987,11 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color:
-                                Theme.of(context).textTheme.titleLarge?.color ??
-                                Colors.blue,
-                            width: 2,
-                          ),
+                          borderSide: BorderSide(color: kLogoGreen, width: 2),
                         ),
                         filled: true,
                         fillColor:
-                            isDark
-                                ? CustomColors.darkCard
-                                : CustomColors.lightCard,
+                            isDark ? const Color(0xFF23242B) : Colors.white,
                       ),
                     ),
                   ],
@@ -1169,7 +1002,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
               'Дата и время: ${_entryDateTime.day}.${_entryDateTime.month}.${_entryDateTime.year} ${_entryDateTime.hour}:${_entryDateTime.minute.toString().padLeft(2, '0')}',
               style: TextStyle(
                 fontSize: 12,
-                color: isDark ? Colors.white70 : Color(0xFF222B45),
+                color: isDark ? Colors.white70 : Colors.grey[600],
               ),
             ),
           ],
@@ -1180,8 +1013,12 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    // Цвет Tailwind text-green-700
+    const Color kLogoGreen = Color(0xFF2f855a);
+
     String nextButtonText = 'Далее';
     IconData nextButtonIcon = Icons.arrow_forward_ios;
     if (_currentStep == FormStep.actions) {
@@ -1194,137 +1031,107 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
       nextButtonIcon = Icons.save_alt_outlined;
     }
     final isFirstStep = _currentStep == FormStep.situation;
+
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        automaticallyImplyLeading: false,
-        leading: IconButton(
-          icon: const Icon(Icons.close, color: Color(0xFF3A5BA0)),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: null,
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              isDark
-                  ? CustomColors.darkGradientStart
-                  : CustomColors.lightGradientStart,
-              isDark
-                  ? CustomColors.darkGradientEnd
-                  : CustomColors.lightGradientEnd,
-            ],
-          ),
-        ),
-        child: PageView(
-          controller: _pageController,
-          physics: const NeverScrollableScrollPhysics(),
-          onPageChanged: (index) {
-            setState(() {
-              _currentStep = FormStep.values[index];
-            });
-          },
-          children:
-              FormStep.values
-                  .map(
-                    (step) => Padding(
-                      padding: const EdgeInsets.only(
-                        top: 32.0,
-                      ), // Больше воздуха сверху
-                      child: _buildStep(step),
+      backgroundColor:
+          isDark ? const Color(0xFF181A20) : const Color(0xFFF7F8FA),
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Крупный заголовок и кнопка закрытия
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 18, 24, 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      _isEditing ? 'Редактировать запись' : 'Новая запись',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : Colors.black,
+                        letterSpacing: -1,
+                      ),
                     ),
-                  )
-                  .toList(),
-        ),
-      ),
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: Colors.transparent,
-          boxShadow: [
-            BoxShadow(
-              color: Color(0x1A3A5BA0),
-              blurRadius: 12,
-              offset: Offset(0, -2),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.close, size: 24, color: kLogoGreen),
+                    tooltip: 'Закрыть',
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+            ),
+            // Заголовок текущего шага
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+              child: Text(
+                _getStepTitle(_currentStep),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white : Colors.black,
+                ),
+              ),
+            ),
+            // Индикатор прогресса
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+              child: LinearProgressIndicator(
+                value:
+                    (FormStep.values.indexOf(_currentStep) + 1) /
+                    FormStep.values.length,
+                backgroundColor: isDark ? Colors.white24 : Colors.grey[300],
+                valueColor: AlwaysStoppedAnimation<Color>(kLogoGreen),
+                minHeight: 4,
+              ),
+            ),
+            // Контент шага
+            Expanded(
+              child: PageView(
+                controller: _pageController,
+                physics: const NeverScrollableScrollPhysics(),
+                onPageChanged: (index) {
+                  setState(() {
+                    _currentStep = FormStep.values[index];
+                  });
+                },
+                children:
+                    FormStep.values.map((step) => _buildStep(step)).toList(),
+              ),
             ),
           ],
         ),
+      ),
+      bottomNavigationBar: Container(
+        color: isDark ? const Color(0xFF181A20) : const Color(0xFFF7F8FA),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              TextButton.icon(
+              IconButton(
                 icon: Icon(
                   isFirstStep ? Icons.cancel_outlined : Icons.arrow_back_ios,
-                  color: isFirstStep ? Colors.redAccent : colorScheme.primary,
+                  color: isFirstStep ? Colors.redAccent : kLogoGreen,
+                  size: 28,
                 ),
-                label: Text(
-                  isFirstStep ? 'Отменить' : 'Назад',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: isFirstStep ? Colors.redAccent : colorScheme.primary,
-                  ),
-                ),
+                tooltip: isFirstStep ? 'Отменить' : 'Назад',
                 onPressed: _previousPage,
               ),
               Text(
                 'Шаг ${_currentStep.index + 1} из ${FormStep.values.length}',
                 style: TextStyle(
-                  color: isDark ? Colors.white70 : Color(0xFF222B45),
+                  color: isDark ? Colors.white70 : Colors.grey[600],
                   fontSize: 14,
                 ),
               ),
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF3A5BA0), Color(0xFF6EC6F5)],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                  ),
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: [
-                    BoxShadow(
-                      color: colorScheme.primary.withValues(alpha: 0.18),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: ElevatedButton.icon(
-                  icon: Icon(
-                    nextButtonIcon,
-                    color: isDark ? Colors.black : Colors.white,
-                    size: 20,
-                  ),
-                  label: Text(
-                    nextButtonText,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.black : Colors.white,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    shadowColor: Colors.transparent,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 14,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    elevation: 0,
-                  ),
-                  onPressed: _nextPage,
-                ),
+              IconButton(
+                icon: Icon(nextButtonIcon, color: kLogoGreen, size: 28),
+                tooltip: nextButtonText,
+                onPressed: _nextPage,
               ),
             ],
           ),
