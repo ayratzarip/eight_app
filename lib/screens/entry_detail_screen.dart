@@ -75,7 +75,7 @@ class EntryDetailScreen extends StatelessWidget {
                     child: Text(
                       'Запись журнала',
                       style: TextStyle(
-                        fontSize: 32,
+                        fontSize: 24,
                         fontWeight: FontWeight.bold,
                         color: isDark ? Colors.white : Colors.black,
                         letterSpacing: -1,

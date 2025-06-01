@@ -42,7 +42,7 @@ class VideoPlayerScreen extends StatelessWidget {
                     child: Text(
                       title,
                       style: TextStyle(
-                        fontSize: 32,
+                        fontSize: 24,
                         fontWeight: FontWeight.bold,
                         color: isDark ? Colors.white : Colors.black,
                         letterSpacing: -1,
@@ -64,6 +64,19 @@ class VideoPlayerScreen extends StatelessWidget {
                     controller:
                         WebViewController()
                           ..setJavaScriptMode(JavaScriptMode.unrestricted)
+                          ..setUserAgent(
+                            'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1',
+                          )
+                          ..enableZoom(false)
+                          ..setNavigationDelegate(
+                            NavigationDelegate(
+                              onWebResourceError: (error) {
+                                debugPrint(
+                                  'WebView error: ${error.description}',
+                                );
+                              },
+                            ),
+                          )
                           ..loadRequest(Uri.parse(videoUrl)),
                   ),
                 ),
@@ -84,7 +97,8 @@ class InstructionsScreen extends StatefulWidget {
 }
 
 class _InstructionsScreenState extends State<InstructionsScreen> {
-  final String vimeoVideoUrl = 'https://player.vimeo.com/video/1041570908';
+  final String vimeoVideoUrl =
+      'https://player.vimeo.com/video/1041570908?h=5aaeb04e69&autoplay=0&loop=0&muted=0&title=1&portrait=0&byline=0';
   int _selectedTab = 2; // 0 - Журнал, 1 - Цели, 2 - Инструкции
 
   void _onTabTapped(int index) {
@@ -122,9 +136,9 @@ class _InstructionsScreenState extends State<InstructionsScreen> {
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 18, 24, 0),
               child: Text(
-                'Инструкции: журнал',
+                'Инструкция: журнал',
                 style: TextStyle(
-                  fontSize: 32,
+                  fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: isDark ? Colors.white : Colors.black,
                   letterSpacing: -1,
@@ -242,12 +256,17 @@ class _InstructionsScreenState extends State<InstructionsScreen> {
                               ),
                               const SizedBox(width: 12),
                               // Заголовок
-                              Text(
-                                'EightFaces: Soft Skills Engine',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                  color: isDark ? Colors.white : Colors.black87,
+                              Flexible(
+                                child: Text(
+                                  'EightFaces: \n Soft Skills Engine',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color:
+                                        isDark ? Colors.white : Colors.black87,
+                                  ),
+                                  maxLines: 2,
+                                  textAlign: TextAlign.center,
                                 ),
                               ),
                             ],

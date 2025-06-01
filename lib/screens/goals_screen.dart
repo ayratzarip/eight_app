@@ -128,13 +128,14 @@ class _GoalsScreenState extends State<GoalsScreen> {
     });
   }
 
-  Widget _buildGoalItem(Goal goal, bool isFirst) {
+  Widget _buildGoalItem(Goal goal, bool isFirst, int index) {
     return GoalItem(
       key: ValueKey(goal.id),
       goal: goal,
       isEditMode: _isEditMode,
       isEditing: _editingGoalId == goal.id,
       isFirst: isFirst,
+      index: index,
       searchQuery: _searchQuery.isNotEmpty ? _searchQuery : null,
       onToggleComplete:
           () => context.read<GoalsProvider>().toggleGoalComplete(goal),
@@ -169,7 +170,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                   Text(
                     'Шаги к цели',
                     style: TextStyle(
-                      fontSize: 32,
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: isDark ? Colors.white : Colors.black,
                       letterSpacing: -1,
@@ -404,7 +405,11 @@ class _GoalsScreenState extends State<GoalsScreen> {
                                   onReorder: _onReorderIncomplete,
                                   itemBuilder: (context, index) {
                                     final goal = uncompletedGoals[index];
-                                    return _buildGoalItem(goal, index == 0);
+                                    return _buildGoalItem(
+                                      goal,
+                                      index == 0,
+                                      index,
+                                    );
                                   },
                                 )
                                 : ListView.separated(
@@ -424,7 +429,11 @@ class _GoalsScreenState extends State<GoalsScreen> {
                                       ),
                                   itemBuilder: (context, index) {
                                     final goal = uncompletedGoals[index];
-                                    return _buildGoalItem(goal, index == 0);
+                                    return _buildGoalItem(
+                                      goal,
+                                      index == 0,
+                                      index,
+                                    );
                                   },
                                 ),
                       ),
@@ -472,7 +481,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                                   onReorder: _onReorderCompleted,
                                   itemBuilder: (context, index) {
                                     final goal = completedGoals[index];
-                                    return _buildGoalItem(goal, false);
+                                    return _buildGoalItem(goal, false, index);
                                   },
                                 )
                                 : ListView.separated(
@@ -492,7 +501,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                                       ),
                                   itemBuilder: (context, index) {
                                     final goal = completedGoals[index];
-                                    return _buildGoalItem(goal, false);
+                                    return _buildGoalItem(goal, false, index);
                                   },
                                 ),
                       ),

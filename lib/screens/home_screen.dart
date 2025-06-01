@@ -7,8 +7,11 @@ import 'add_edit_entry_screen.dart';
 import 'entry_detail_screen.dart';
 import 'instructions_screen.dart';
 import 'goals_screen.dart';
-import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
-import '../main.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io';
+import 'dart:convert' show utf8;
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -104,51 +107,118 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    final csvDateFormat = DateFormat('yyyy-MM-dd HH:mm:ss');
-
-    List<String> csvRows = [];
-
-    csvRows.add(
-      'id,dateTime,situationDescription,attentionFocus,thoughts,bodySensations,actions,futureActions',
-    );
-
-    for (var entry in entries) {
-      List<String> row = [
-        _sanitizeCsvField((entry.id ?? 0).toString()),
-        _sanitizeCsvField(csvDateFormat.format(entry.dateTime)),
-        _sanitizeCsvField(entry.situationDescription),
-        _sanitizeCsvField(entry.attentionFocus),
-        _sanitizeCsvField(entry.thoughts),
-        _sanitizeCsvField(entry.bodySensations),
-        _sanitizeCsvField(_cleanActionsText(entry.actions)),
-        _sanitizeCsvField(_cleanFutureActionsText(entry.futureActions)),
-      ];
-      csvRows.add(row.join(','));
+    // Показываем индикатор загрузки
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              SizedBox(width: 16),
+              Text('Подготовка файла...'),
+            ],
+          ),
+          duration: Duration(seconds: 2),
+        ),
+      );
     }
 
-    String csvData = csvRows.join('\n');
+    try {
+      final csvDateFormat = DateFormat('yyyy-MM-dd HH:mm:ss');
+      final fileNameDateFormat = DateFormat('yyyy-MM-dd_HH-mm');
 
-    if (kIsWeb) {
-      // Веб-экспорт временно недоступен
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Экспорт в веб-версии временно недоступен'),
-            backgroundColor: Colors.orange,
-          ),
-        );
+      List<String> csvRows = [];
+
+      // Заголовки с понятными названиями на русском
+      csvRows.add(
+        'ID,Дата и время,Описание ситуации,Фокус внимания,Мысли,Телесные ощущения,Действия,Планы на будущее',
+      );
+
+      for (var entry in entries) {
+        List<String> row = [
+          _sanitizeCsvField((entry.id ?? 0).toString()),
+          _sanitizeCsvField(csvDateFormat.format(entry.dateTime)),
+          _sanitizeCsvField(entry.situationDescription),
+          _sanitizeCsvField(entry.attentionFocus),
+          _sanitizeCsvField(entry.thoughts),
+          _sanitizeCsvField(entry.bodySensations),
+          _sanitizeCsvField(_cleanActionsText(entry.actions)),
+          _sanitizeCsvField(_cleanFutureActionsText(entry.futureActions)),
+        ];
+        csvRows.add(row.join(','));
       }
-    } else {
-      debugPrint('---- НАЧАЛО ЭКСПОРТА CSV ----');
-      debugPrint(csvData);
-      debugPrint('---- КОНЕЦ ЭКСПОРТА CSV ----');
+
+      String csvData = csvRows.join('\n');
+
+      if (kIsWeb) {
+        // Для веб-версии используем share_plus
+        await Share.share(csvData, subject: 'Экспорт журнала самооценки');
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Данные CSV готовы к сохранению'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        // Для мобильных платформ создаем файл
+        final directory = await getApplicationDocumentsDirectory();
+        final fileName =
+            'journal_export_${fileNameDateFormat.format(DateTime.now())}.csv';
+        final file = File('${directory.path}/$fileName');
+
+        await file.writeAsString(csvData, encoding: utf8);
+
+        // Делимся файлом через системное меню
+        final result = await Share.shareXFiles(
+          [XFile(file.path)],
+          subject: 'Экспорт журнала самооценки',
+          text:
+              'Экспорт данных из приложения "Журнал самооценки" за ${DateFormat('dd.MM.yyyy').format(DateTime.now())}',
+        );
+
+        if (context.mounted) {
+          if (result.status == ShareResultStatus.success) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Файл $fileName успешно экспортирован'),
+                backgroundColor: Colors.green,
+                action: SnackBarAction(
+                  label: 'Повторить',
+                  onPressed: () => _exportToCsv(context),
+                ),
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Файл $fileName создан и готов к отправке'),
+                backgroundColor: Colors.blue,
+                action: SnackBarAction(
+                  label: 'Повторить',
+                  onPressed: () => _exportToCsv(context),
+                ),
+              ),
+            );
+          }
+        }
+      }
+    } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Данные CSV выведены в консоль отладки (для мобильных).',
+          SnackBar(
+            content: Text('Ошибка экспорта: $e'),
+            backgroundColor: Colors.red,
+            action: SnackBarAction(
+              label: 'Повторить',
+              onPressed: () => _exportToCsv(context),
             ),
-            backgroundColor: Colors.blue,
           ),
         );
       }
@@ -180,7 +250,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Text(
                       'Журнал самооценки',
                       style: TextStyle(
-                        fontSize: 32,
+                        fontSize: 24,
                         fontWeight: FontWeight.bold,
                         color: isDark ? Colors.white : Colors.black,
                         letterSpacing: -1,
@@ -189,27 +259,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   Row(
                     children: [
-                      IconButton(
-                        icon: Icon(
-                          Provider.of<ThemeProvider>(context).themeMode ==
-                                  ThemeMode.dark
-                              ? Icons.wb_sunny_outlined
-                              : Icons.nightlight_round,
-                          size: 24,
-                          color: kLogoGreen,
-                        ),
-                        tooltip:
-                            Provider.of<ThemeProvider>(context).themeMode ==
-                                    ThemeMode.dark
-                                ? 'Светлая тема'
-                                : 'Тёмная тема',
-                        onPressed: () {
-                          Provider.of<ThemeProvider>(
-                            context,
-                            listen: false,
-                          ).toggleTheme();
-                        },
-                      ),
                       IconButton(
                         icon: Icon(
                           Icons.download_outlined,

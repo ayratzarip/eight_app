@@ -6,17 +6,13 @@ import 'providers/goals_provider.dart';
 import 'screens/home_screen.dart';
 
 class ThemeProvider extends ChangeNotifier {
-  ThemeMode _themeMode = ThemeMode.light;
+  ThemeMode _themeMode =
+      ThemeMode.system; // Автоматически следуем системной теме
   ThemeMode get themeMode => _themeMode;
-  void toggleTheme() {
-    _themeMode =
-        _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
-    notifyListeners();
-  }
 
-  void setSystemTheme() {
+  // Убираем toggleTheme, оставляем только системную тему
+  ThemeProvider() {
     _themeMode = ThemeMode.system;
-    notifyListeners();
   }
 }
 

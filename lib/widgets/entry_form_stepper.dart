@@ -57,7 +57,6 @@ class EntryFormStepper extends StatefulWidget {
 }
 
 class _EntryFormStepperState extends State<EntryFormStepper> {
-  final _pageController = PageController();
   FormStep _currentStep = FormStep.situation;
 
   // Controllers for text fields
@@ -207,7 +206,6 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
 
   @override
   void dispose() {
-    _pageController.dispose();
     _situationController.dispose();
     _attentionController.dispose();
     _thoughtsController.dispose();
@@ -299,15 +297,9 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
     }
 
     if (_currentStep.index < FormStep.values.length - 1) {
-      FormStep nextStepTarget = FormStep.values[_currentStep.index + 1];
       setState(() {
-        _currentStep = nextStepTarget;
+        _currentStep = FormStep.values[_currentStep.index + 1];
       });
-      _pageController.animateToPage(
-        _currentStep.index,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeIn,
-      );
     } else {
       _saveEntry();
     }
@@ -318,10 +310,6 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
       setState(() {
         _currentStep = FormStep.values[_currentStep.index - 1];
       });
-      _pageController.previousPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeIn,
-      );
     } else if (_currentStep == FormStep.situation) {
       Navigator.of(context).pop();
     }
@@ -488,10 +476,14 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
     IconData icon,
   ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
     const Color kLogoGreen = Color(0xFF2f855a);
 
     return Padding(
-      padding: const EdgeInsets.all(24.0),
+      padding: EdgeInsets.all(
+        isLandscape ? 16.0 : 24.0,
+      ), // Меньше отступы в горизонтальном режиме
       child: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -499,8 +491,9 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
           children: [
             TextField(
               controller: controller,
-              maxLines: 5,
-              minLines: 3,
+              maxLines:
+                  isLandscape ? 3 : 5, // Меньше строк в горизонтальном режиме
+              minLines: isLandscape ? 2 : 3,
               style: TextStyle(
                 fontSize: 16,
                 color: isDark ? Colors.white : Colors.black87,
@@ -519,7 +512,9 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                 fillColor: isDark ? const Color(0xFF23242B) : Colors.white,
               ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(
+              height: isLandscape ? 12 : 20,
+            ), // Меньше отступы в горизонтальном режиме
             Text(
               'Дата и время: ${_entryDateTime.day}.${_entryDateTime.month}.${_entryDateTime.year} ${_entryDateTime.hour}:${_entryDateTime.minute.toString().padLeft(2, '0')}',
               style: TextStyle(
@@ -536,10 +531,14 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
   // Новый метод для построения UI шага "Фокус внимания"
   Widget _buildAttentionStep() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
     const Color kLogoGreen = Color(0xFF2f855a);
 
     return Padding(
-      padding: const EdgeInsets.all(24.0),
+      padding: EdgeInsets.all(
+        isLandscape ? 16.0 : 24.0,
+      ), // Меньше отступы в горизонтальном режиме
       child: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -554,7 +553,9 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                 color: isDark ? Colors.white70 : Colors.grey[600],
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(
+              height: isLandscape ? 4 : 8,
+            ), // Меньше отступы в горизонтальном режиме
             ...attentionFocusOptions.map((option) {
               return RadioListTile<String>(
                 title: Text(option, style: const TextStyle(fontSize: 15)),
@@ -567,12 +568,16 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                 },
                 activeColor: kLogoGreen,
                 contentPadding: EdgeInsets.zero,
+                dense: isLandscape, // Компактнее в горизонтальном режиме
               );
             }),
-            const SizedBox(height: 16),
+            SizedBox(
+              height: isLandscape ? 8 : 16,
+            ), // Меньше отступы в горизонтальном режиме
             TextField(
               controller: _attentionController,
-              maxLines: 3,
+              maxLines:
+                  isLandscape ? 2 : 3, // Меньше строк в горизонтальном режиме
               minLines: 2,
               style: TextStyle(
                 fontSize: 16,
@@ -595,7 +600,9 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                 fillColor: isDark ? const Color(0xFF23242B) : Colors.white,
               ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(
+              height: isLandscape ? 12 : 20,
+            ), // Меньше отступы в горизонтальном режиме
             Text(
               'Дата и время: ${_entryDateTime.day}.${_entryDateTime.month}.${_entryDateTime.year} ${_entryDateTime.hour}:${_entryDateTime.minute.toString().padLeft(2, '0')}',
               style: TextStyle(
@@ -612,10 +619,14 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
   // Новый метод для построения UI шага "Мысли"
   Widget _buildThoughtsStep() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
     const Color kLogoGreen = Color(0xFF2f855a);
 
     return Padding(
-      padding: const EdgeInsets.all(24.0),
+      padding: EdgeInsets.all(
+        isLandscape ? 16.0 : 24.0,
+      ), // Меньше отступы в горизонтальном режиме
       child: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -630,7 +641,9 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                 color: isDark ? Colors.white70 : Colors.grey[600],
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(
+              height: isLandscape ? 4 : 8,
+            ), // Меньше отступы в горизонтальном режиме
             // Список RadioListTile для выбора варианта мыслей
             ...thoughtOptions.map((option) {
               return RadioListTile<String>(
@@ -648,13 +661,17 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                 },
                 activeColor: kLogoGreen,
                 contentPadding: EdgeInsets.zero,
+                dense: isLandscape, // Компактнее в горизонтальном режиме
               );
             }),
-            const SizedBox(height: 16),
+            SizedBox(
+              height: isLandscape ? 8 : 16,
+            ), // Меньше отступы в горизонтальном режиме
             // Текстовое поле для дополнительного описания мыслей или основного ввода
             TextField(
               controller: _thoughtsController,
-              maxLines: 3,
+              maxLines:
+                  isLandscape ? 2 : 3, // Меньше строк в горизонтальном режиме
               minLines: 2,
               style: TextStyle(
                 fontSize: 16,
@@ -677,7 +694,9 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                 fillColor: isDark ? const Color(0xFF23242B) : Colors.white,
               ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(
+              height: isLandscape ? 12 : 20,
+            ), // Меньше отступы в горизонтальном режиме
             Text(
               'Дата и время: ${_entryDateTime.day}.${_entryDateTime.month}.${_entryDateTime.year} ${_entryDateTime.hour}:${_entryDateTime.minute.toString().padLeft(2, '0')}',
               style: TextStyle(
@@ -701,10 +720,14 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
   // Новый метод для построения UI шага "Телесные ощущения"
   Widget _buildBodySensationsStep() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
     const Color kLogoGreen = Color(0xFF2f855a);
 
     return Padding(
-      padding: const EdgeInsets.all(24.0),
+      padding: EdgeInsets.all(
+        isLandscape ? 16.0 : 24.0,
+      ), // Меньше отступы в горизонтальном режиме
       child: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -718,7 +741,9 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                 fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(
+              height: isLandscape ? 4 : 8,
+            ), // Меньше отступы в горизонтальном режиме
             Row(
               children: [
                 Expanded(
@@ -789,7 +814,9 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                 ),
               ],
             ),
-            const SizedBox(height: 24),
+            SizedBox(
+              height: isLandscape ? 12 : 24,
+            ), // Меньше отступы в горизонтальном режиме
             Text(
               'Опишите ваши телесные ощущения:',
               style: TextStyle(
@@ -798,10 +825,13 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                 fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(
+              height: isLandscape ? 4 : 8,
+            ), // Меньше отступы в горизонтальном режиме
             TextField(
               controller: _bodySensationsController,
-              maxLines: 3, // Уменьшил немного для баланса с слайдером
+              maxLines:
+                  isLandscape ? 2 : 3, // Меньше строк в горизонтальном режиме
               minLines: 2,
               style: TextStyle(
                 fontSize: 16,
@@ -822,7 +852,9 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                 fillColor: isDark ? const Color(0xFF23242B) : Colors.white,
               ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(
+              height: isLandscape ? 12 : 20,
+            ), // Меньше отступы в горизонтальном режиме
             Text(
               'Дата и время: ${_entryDateTime.day}.${_entryDateTime.month}.${_entryDateTime.year} ${_entryDateTime.hour}:${_entryDateTime.minute.toString().padLeft(2, '0')}',
               style: TextStyle(
@@ -839,10 +871,14 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
   // Новый метод для построения UI шага "Ваши действия"
   Widget _buildActionsStep() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
     const Color kLogoGreen = Color(0xFF2f855a);
 
     return Padding(
-      padding: const EdgeInsets.all(24.0),
+      padding: EdgeInsets.all(
+        isLandscape ? 16.0 : 24.0,
+      ), // Меньше отступы в горизонтальном режиме
       child: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -856,10 +892,13 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                 fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(
+              height: isLandscape ? 4 : 8,
+            ), // Меньше отступы в горизонтальном режиме
             TextField(
               controller: _actionsController,
-              maxLines: 3,
+              maxLines:
+                  isLandscape ? 2 : 3, // Меньше строк в горизонтальном режиме
               minLines: 2,
               style: TextStyle(
                 fontSize: 16,
@@ -879,7 +918,9 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                 fillColor: isDark ? const Color(0xFF23242B) : Colors.white,
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(
+              height: isLandscape ? 12 : 24,
+            ), // Меньше отступы в горизонтальном режиме
             Text(
               'Каков был результат ваших действий?',
               style: TextStyle(
@@ -888,7 +929,9 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                 fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(
+              height: isLandscape ? 4 : 8,
+            ), // Меньше отступы в горизонтальном режиме
             ...actionResultOptions.map((option) {
               return RadioListTile<String>(
                 title: Text(option, style: const TextStyle(fontSize: 15)),
@@ -901,9 +944,12 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                 },
                 activeColor: kLogoGreen,
                 contentPadding: EdgeInsets.zero,
+                dense: isLandscape, // Компактнее в горизонтальном режиме
               );
             }),
-            const SizedBox(height: 20),
+            SizedBox(
+              height: isLandscape ? 12 : 20,
+            ), // Меньше отступы в горизонтальном режиме
             Text(
               'Дата и время: ${_entryDateTime.day}.${_entryDateTime.month}.${_entryDateTime.year} ${_entryDateTime.hour}:${_entryDateTime.minute.toString().padLeft(2, '0')}',
               style: TextStyle(
@@ -920,10 +966,14 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
   // Метод для построения UI шага "Что делать в будущем?"
   Widget _buildFutureActionsStep() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
     const Color kLogoGreen = Color(0xFF2f855a);
 
     return Padding(
-      padding: const EdgeInsets.all(24.0),
+      padding: EdgeInsets.all(
+        isLandscape ? 16.0 : 24.0,
+      ), // Меньше отступы в горизонтальном режиме
       child: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -937,7 +987,9 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                 fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(
+              height: isLandscape ? 4 : 8,
+            ), // Меньше отступы в горизонтальном режиме
             // Генерация RadioListTile для выбора опции
             ...futureActionOptions.map((option) {
               return RadioListTile<String>(
@@ -951,6 +1003,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                 },
                 activeColor: kLogoGreen,
                 contentPadding: EdgeInsets.zero,
+                dense: isLandscape, // Компактнее в горизонтальном режиме
               );
             }),
 
@@ -958,7 +1011,9 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
             if (_selectedFutureActionOption ==
                 futureActionOptions[0]) // "Знаю, что делать в подобных ситуациях"
               Padding(
-                padding: const EdgeInsets.only(top: 16.0),
+                padding: EdgeInsets.only(
+                  top: isLandscape ? 8.0 : 16.0,
+                ), // Меньше отступы в горизонтальном режиме
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -970,10 +1025,15 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(
+                      height: isLandscape ? 4 : 8,
+                    ), // Меньше отступы в горизонтальном режиме
                     TextField(
                       controller: _futureActionsController,
-                      maxLines: 3,
+                      maxLines:
+                          isLandscape
+                              ? 2
+                              : 3, // Меньше строк в горизонтальном режиме
                       minLines: 2,
                       style: TextStyle(
                         fontSize: 16,
@@ -997,7 +1057,9 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                   ],
                 ),
               ),
-            const SizedBox(height: 20),
+            SizedBox(
+              height: isLandscape ? 12 : 20,
+            ), // Меньше отступы в горизонтальном режиме
             Text(
               'Дата и время: ${_entryDateTime.day}.${_entryDateTime.month}.${_entryDateTime.year} ${_entryDateTime.hour}:${_entryDateTime.minute.toString().padLeft(2, '0')}',
               style: TextStyle(
@@ -1016,6 +1078,10 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
+    // Определяем ориентацию экрана
+    final orientation = MediaQuery.of(context).orientation;
+    final isLandscape = orientation == Orientation.landscape;
+
     // Цвет Tailwind text-green-700
     const Color kLogoGreen = Color(0xFF2f855a);
 
@@ -1033,107 +1099,157 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
     final isFirstStep = _currentStep == FormStep.situation;
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor:
           isDark ? const Color(0xFF181A20) : const Color(0xFFF7F8FA),
       body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Крупный заголовок и кнопка закрытия
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 18, 24, 0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      _isEditing ? 'Редактировать запись' : 'Новая запись',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black,
-                        letterSpacing: -1,
+        child: SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight:
+                  MediaQuery.of(context).size.height -
+                  MediaQuery.of(context).padding.top -
+                  MediaQuery.of(context).padding.bottom,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Крупный заголовок и кнопка закрытия - компактнее в горизонтальном режиме
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    isLandscape ? 16 : 24,
+                    isLandscape ? 8 : 18,
+                    isLandscape ? 16 : 24,
+                    0,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _isEditing ? 'Редактировать запись' : 'Новая запись',
+                          style: TextStyle(
+                            fontSize:
+                                isLandscape
+                                    ? 24
+                                    : 32, // Меньше в горизонтальном режиме
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : Colors.black,
+                            letterSpacing: -1,
+                          ),
+                        ),
                       ),
+                      IconButton(
+                        icon: Icon(
+                          Icons.close,
+                          size: isLandscape ? 20 : 24,
+                          color: kLogoGreen,
+                        ),
+                        tooltip: 'Закрыть',
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ],
+                  ),
+                ),
+                // Заголовок текущего шага - компактнее в горизонтальном режиме
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    isLandscape ? 16 : 24,
+                    isLandscape ? 4 : 12,
+                    isLandscape ? 16 : 24,
+                    0,
+                  ),
+                  child: Text(
+                    _getStepTitle(_currentStep),
+                    style: TextStyle(
+                      fontSize:
+                          isLandscape
+                              ? 16
+                              : 18, // Меньше в горизонтальном режиме
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white : Colors.black,
                     ),
                   ),
-                  IconButton(
-                    icon: Icon(Icons.close, size: 24, color: kLogoGreen),
-                    tooltip: 'Закрыть',
-                    onPressed: () => Navigator.of(context).pop(),
+                ),
+                // Индикатор прогресса - компактнее в горизонтальном режиме
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    isLandscape ? 16 : 24,
+                    isLandscape ? 4 : 8,
+                    isLandscape ? 16 : 24,
+                    0,
                   ),
-                ],
-              ),
-            ),
-            // Заголовок текущего шага
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
-              child: Text(
-                _getStepTitle(_currentStep),
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white : Colors.black,
+                  child: LinearProgressIndicator(
+                    value:
+                        (FormStep.values.indexOf(_currentStep) + 1) /
+                        FormStep.values.length,
+                    backgroundColor: isDark ? Colors.white24 : Colors.grey[300],
+                    valueColor: AlwaysStoppedAnimation<Color>(kLogoGreen),
+                    minHeight:
+                        isLandscape ? 3 : 4, // Тоньше в горизонтальном режиме
+                  ),
                 ),
-              ),
-            ),
-            // Индикатор прогресса
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
-              child: LinearProgressIndicator(
-                value:
-                    (FormStep.values.indexOf(_currentStep) + 1) /
-                    FormStep.values.length,
-                backgroundColor: isDark ? Colors.white24 : Colors.grey[300],
-                valueColor: AlwaysStoppedAnimation<Color>(kLogoGreen),
-                minHeight: 4,
-              ),
-            ),
-            // Контент шага
-            Expanded(
-              child: PageView(
-                controller: _pageController,
-                physics: const NeverScrollableScrollPhysics(),
-                onPageChanged: (index) {
-                  setState(() {
-                    _currentStep = FormStep.values[index];
-                  });
-                },
-                children:
-                    FormStep.values.map((step) => _buildStep(step)).toList(),
-              ),
-            ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: Container(
-        color: isDark ? const Color(0xFF181A20) : const Color(0xFFF7F8FA),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              IconButton(
-                icon: Icon(
-                  isFirstStep ? Icons.cancel_outlined : Icons.arrow_back_ios,
-                  color: isFirstStep ? Colors.redAccent : kLogoGreen,
-                  size: 28,
+                // Контент текущего шага
+                _buildStep(_currentStep),
+                // Фиксированная нижняя панель навигации - теперь часть скролла
+                Container(
+                  color:
+                      isDark
+                          ? const Color(0xFF181A20)
+                          : const Color(0xFFF7F8FA),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isLandscape ? 12.0 : 16.0,
+                      vertical:
+                          isLandscape
+                              ? 8.0
+                              : 16.0, // Меньше в горизонтальном режиме
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        IconButton(
+                          icon: Icon(
+                            isFirstStep
+                                ? Icons.cancel_outlined
+                                : Icons.arrow_back_ios,
+                            color: isFirstStep ? Colors.redAccent : kLogoGreen,
+                            size:
+                                isLandscape
+                                    ? 24
+                                    : 28, // Меньше в горизонтальном режиме
+                          ),
+                          tooltip: isFirstStep ? 'Отменить' : 'Назад',
+                          onPressed: _previousPage,
+                        ),
+                        Text(
+                          'Шаг ${_currentStep.index + 1} из ${FormStep.values.length}',
+                          style: TextStyle(
+                            color: isDark ? Colors.white70 : Colors.grey[600],
+                            fontSize:
+                                isLandscape
+                                    ? 12
+                                    : 14, // Меньше в горизонтальном режиме
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            nextButtonIcon,
+                            color: kLogoGreen,
+                            size:
+                                isLandscape
+                                    ? 24
+                                    : 28, // Меньше в горизонтальном режиме
+                          ),
+                          tooltip: nextButtonText,
+                          onPressed: _nextPage,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                tooltip: isFirstStep ? 'Отменить' : 'Назад',
-                onPressed: _previousPage,
-              ),
-              Text(
-                'Шаг ${_currentStep.index + 1} из ${FormStep.values.length}',
-                style: TextStyle(
-                  color: isDark ? Colors.white70 : Colors.grey[600],
-                  fontSize: 14,
-                ),
-              ),
-              IconButton(
-                icon: Icon(nextButtonIcon, color: kLogoGreen, size: 28),
-                tooltip: nextButtonText,
-                onPressed: _nextPage,
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

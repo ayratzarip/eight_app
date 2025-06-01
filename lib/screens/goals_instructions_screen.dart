@@ -13,7 +13,7 @@ class GoalsInstructionsScreen extends StatefulWidget {
 
 class _GoalsInstructionsScreenState extends State<GoalsInstructionsScreen> {
   final String vimeoVideoUrl =
-      'https://player.vimeo.com/video/1234567890'; // Заменить на реальный URL
+      'https://player.vimeo.com/video/1059455108?h=33d55d43f5&autoplay=0&loop=0&muted=0&title=1&portrait=0&byline=0'; // Обновлённый URL
   int _selectedTab = 2; // 0 - Журнал, 1 - Цели, 2 - Инструкции
 
   void _onTabTapped(int index) {
@@ -51,9 +51,9 @@ class _GoalsInstructionsScreenState extends State<GoalsInstructionsScreen> {
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 18, 24, 0),
               child: Text(
-                'Инструкции: цели',
+                'Инструкция: цели',
                 style: TextStyle(
-                  fontSize: 32,
+                  fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: isDark ? Colors.white : Colors.black,
                   letterSpacing: -1,
@@ -103,40 +103,24 @@ class _GoalsInstructionsScreenState extends State<GoalsInstructionsScreen> {
                           },
                         ),
                         _buildDivider(isDark),
-                        // Как формировать цели
+                        // Как формировать шаги к цели
                         _buildSectionItem(
                           context: context,
-                          title: 'Как формировать цели',
+                          title: 'Как формировать шаги к цели',
                           description:
-                              'Принципы создания эффективных и достижимых целей',
-                          icon: Icons.flag_outlined,
-                          content: _buildGoalFormationContent(context, isDark),
+                              'Принципы создания эффективных и достижимых шагов',
+                          icon: Icons.edit_outlined,
+                          content: _buildStepFormationContent(context, isDark),
                         ),
                         _buildDivider(isDark),
-                        // Методы достижения
+                        // Советы и рекомендации
                         _buildSectionItem(
                           context: context,
-                          title: 'Методы достижения',
+                          title: 'Советы и рекомендации',
                           description:
-                              'Проверенные стратегии для успешного выполнения целей',
-                          icon: Icons.trending_up,
-                          content: _buildAchievementMethodsContent(
-                            context,
-                            isDark,
-                          ),
-                        ),
-                        _buildDivider(isDark),
-                        // Отслеживание прогресса
-                        _buildSectionItem(
-                          context: context,
-                          title: 'Отслеживание прогресса',
-                          description:
-                              'Как контролировать движение к цели и корректировать планы',
-                          icon: Icons.analytics_outlined,
-                          content: _buildProgressTrackingContent(
-                            context,
-                            isDark,
-                          ),
+                              'Полезные советы для эффективного достижения целей',
+                          icon: Icons.lightbulb_outline,
+                          content: _buildTipsContent(context, isDark),
                           isLast: true,
                         ),
                       ],
@@ -187,12 +171,17 @@ class _GoalsInstructionsScreenState extends State<GoalsInstructionsScreen> {
                               ),
                               const SizedBox(width: 12),
                               // Заголовок
-                              Text(
-                                'EightFaces: Soft Skills Engine',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                  color: isDark ? Colors.white : Colors.black87,
+                              Flexible(
+                                child: Text(
+                                  'EightFaces: \n Soft Skills Engine',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color:
+                                        isDark ? Colors.white : Colors.black87,
+                                  ),
+                                  maxLines: 2,
+                                  textAlign: TextAlign.center,
                                 ),
                               ),
                             ],
@@ -290,7 +279,7 @@ class _GoalsInstructionsScreenState extends State<GoalsInstructionsScreen> {
     );
   }
 
-  Widget _buildGoalFormationContent(BuildContext context, bool isDark) {
+  Widget _buildStepFormationContent(BuildContext context, bool isDark) {
     final principles = [
       '• Конкретность - цель должна быть четко сформулирована',
       '• Измеримость - прогресс должен быть измеримым',
@@ -322,39 +311,7 @@ class _GoalsInstructionsScreenState extends State<GoalsInstructionsScreen> {
     );
   }
 
-  Widget _buildAchievementMethodsContent(BuildContext context, bool isDark) {
-    final methods = [
-      '• Создавайте план действий с конкретными шагами',
-      '• Используйте принцип "малых побед" - начинайте с простого',
-      '• Ведите ежедневный учет прогресса',
-      '• Найдите партнера по целям для взаимной поддержки',
-      '• Визуализируйте достижение цели каждый день',
-      '• Награждайте себя за промежуточные достижения',
-      '• Изучайте опыт тех, кто уже достиг подобных целей',
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children:
-          methods
-              .map(
-                (method) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: Text(
-                    method,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: isDark ? Colors.white70 : Colors.grey[700],
-                      height: 1.4,
-                    ),
-                  ),
-                ),
-              )
-              .toList(),
-    );
-  }
-
-  Widget _buildProgressTrackingContent(BuildContext context, bool isDark) {
+  Widget _buildTipsContent(BuildContext context, bool isDark) {
     final tips = [
       '• Ведите ежедневник для отслеживания действий',
       '• Еженедельно анализируйте прогресс и корректируйте планы',

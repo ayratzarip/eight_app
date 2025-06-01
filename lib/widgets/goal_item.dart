@@ -8,6 +8,7 @@ class GoalItem extends StatefulWidget {
   final bool isEditMode;
   final bool isEditing;
   final bool isFirst;
+  final int index;
   final VoidCallback onToggleComplete;
   final VoidCallback onStartEdit;
   final Function(String) onSaveEdit;
@@ -21,6 +22,7 @@ class GoalItem extends StatefulWidget {
     required this.isEditMode,
     required this.isEditing,
     required this.isFirst,
+    required this.index,
     required this.onToggleComplete,
     required this.onStartEdit,
     required this.onSaveEdit,
@@ -167,12 +169,12 @@ class _GoalItemState extends State<GoalItem> {
           child: Row(
             children: [
               if (widget.isEditMode && !widget.isEditing)
-                Container(
-                  margin: const EdgeInsets.only(left: 4, right: 12),
-                  child: Icon(
-                    Icons.drag_handle,
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
-                    size: 20,
+                ReorderableDragStartListener(
+                  index: widget.index,
+                  child: Container(
+                    margin: const EdgeInsets.only(left: 4, right: 12),
+                    padding: const EdgeInsets.all(4),
+                    child: Icon(Icons.reorder, color: kLogoGreen, size: 24),
                   ),
                 ),
 

@@ -58,86 +58,172 @@ class _AddGoalDialogState extends State<AddGoalDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
 
-    return AlertDialog(
+    return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      title: Text(
-        'Добавить новый шаг',
-        style: theme.textTheme.titleMedium?.copyWith(
-          fontWeight: FontWeight.bold,
-          color:
-              Theme.of(context).brightness == Brightness.dark
-                  ? Colors.white
-                  : Colors.black,
+      child: Container(
+        constraints: BoxConstraints(
+          maxWidth: isLandscape ? 500 : 320,
+          maxHeight:
+              MediaQuery.of(context).size.height * (isLandscape ? 0.8 : 0.6),
         ),
-      ),
-      content: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextFormField(
-              controller: _controller,
-              autofocus: true,
-              maxLines: 3,
-              minLines: 1,
-              style: theme.textTheme.bodyLarge,
-              decoration: InputDecoration(
-                hintText: 'Введите текст шага...',
-                hintStyle: theme.inputDecorationTheme.hintStyle,
-                border: theme.inputDecorationTheme.border,
-                focusedBorder: theme.inputDecorationTheme.focusedBorder,
-                fillColor: theme.inputDecorationTheme.fillColor,
-                filled: theme.inputDecorationTheme.filled,
-                contentPadding: theme.inputDecorationTheme.contentPadding,
-              ),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Пожалуйста, введите текст шага';
-                }
-                return null;
-              },
-              onFieldSubmitted: (_) => _addGoal(),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              24,
+              isLandscape
+                  ? 16
+                  : 20, // Меньше отступы сверху в горизонтальном режиме
+              24,
+              isLandscape
+                  ? 8
+                  : 16, // Меньше отступы снизу в горизонтальном режиме
             ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: kAdviceBg,
-                border: Border.all(color: kLogoGreen.withValues(alpha: 0.3)),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.lightbulb_outline, color: kLogoGreen, size: 20),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Совет: Формулируйте шаг конкретно и измеримо',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: kLogoGreen,
-                        fontSize: 12,
-                      ),
-                    ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Заголовок
+                Text(
+                  'Добавить новый шаг',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize:
+                        isLandscape
+                            ? 16
+                            : 18, // Меньше шрифт в горизонтальном режиме
+                    color:
+                        Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white
+                            : Colors.black,
                   ),
-                ],
-              ),
+                ),
+                SizedBox(height: isLandscape ? 8 : 16),
+                // Форма
+                Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextFormField(
+                        controller: _controller,
+                        autofocus: true,
+                        maxLines:
+                            isLandscape
+                                ? 2
+                                : 3, // Меньше строк в горизонтальном режиме
+                        minLines: 1,
+                        style: theme.textTheme.bodyLarge,
+                        decoration: InputDecoration(
+                          hintText: 'Введите текст шага...',
+                          hintStyle: theme.inputDecorationTheme.hintStyle,
+                          border: theme.inputDecorationTheme.border,
+                          focusedBorder:
+                              theme.inputDecorationTheme.focusedBorder,
+                          fillColor: theme.inputDecorationTheme.fillColor,
+                          filled: theme.inputDecorationTheme.filled,
+                          contentPadding:
+                              theme.inputDecorationTheme.contentPadding,
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Пожалуйста, введите текст шага';
+                          }
+                          return null;
+                        },
+                        onFieldSubmitted: (_) => _addGoal(),
+                      ),
+                      SizedBox(
+                        height: isLandscape ? 8 : 16,
+                      ), // Меньше отступы в горизонтальном режиме
+                      Container(
+                        padding: EdgeInsets.all(
+                          isLandscape ? 8 : 12,
+                        ), // Меньше отступы в горизонтальном режиме
+                        decoration: BoxDecoration(
+                          color: kAdviceBg,
+                          border: Border.all(
+                            color: kLogoGreen.withValues(alpha: 0.3),
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.lightbulb_outline,
+                              color: kLogoGreen,
+                              size: isLandscape ? 18 : 20,
+                            ),
+                            SizedBox(
+                              width: isLandscape ? 6 : 8,
+                            ), // Меньше отступы в горизонтальном режиме
+                            Expanded(
+                              child: Text(
+                                'Совет: Формулируйте шаг конкретно и измеримо',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: kLogoGreen,
+                                  fontSize:
+                                      isLandscape
+                                          ? 11
+                                          : 12, // Меньше шрифт в горизонтальном режиме
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: isLandscape ? 12 : 20),
+                      // Кнопки действий
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          IconButton(
+                            onPressed:
+                                _isLoading
+                                    ? null
+                                    : () => Navigator.of(context).pop(),
+                            icon: Icon(
+                              Icons.close,
+                              color: Colors.redAccent,
+                              size: isLandscape ? 20 : 24,
+                            ),
+                            tooltip: 'Отмена',
+                          ),
+                          SizedBox(width: 8),
+                          IconButton(
+                            onPressed: _isLoading ? null : _addGoal,
+                            icon:
+                                _isLoading
+                                    ? SizedBox(
+                                      width: isLandscape ? 18 : 20,
+                                      height: isLandscape ? 18 : 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              kLogoGreen,
+                                            ),
+                                      ),
+                                    )
+                                    : Icon(
+                                      Icons.check,
+                                      color: kLogoGreen,
+                                      size: isLandscape ? 20 : 24,
+                                    ),
+                            tooltip: 'Добавить',
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.close, color: Colors.redAccent, size: 28),
-          tooltip: 'Отмена',
-          onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
-        ),
-        IconButton(
-          icon: Icon(Icons.check, color: kLogoGreen, size: 28),
-          tooltip: 'Добавить',
-          onPressed: _isLoading ? null : _addGoal,
-        ),
-      ],
     );
   }
 }
