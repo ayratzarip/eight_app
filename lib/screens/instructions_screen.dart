@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'dart:io' show Platform;
 import 'home_screen.dart';
 import 'goals_screen.dart';
 
-class VideoPlayerScreen extends StatelessWidget {
+class VideoPlayerScreen extends StatefulWidget {
   final String videoUrl;
   final String title;
 
@@ -12,6 +13,69 @@ class VideoPlayerScreen extends StatelessWidget {
     required this.videoUrl,
     required this.title,
   });
+
+  @override
+  State<VideoPlayerScreen> createState() => _VideoPlayerScreenState();
+}
+
+class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
+  late WebViewController _controller;
+  bool _isLoading = true;
+  bool _hasError = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeController();
+  }
+
+  void _initializeController() {
+    _controller =
+        WebViewController()
+          ..setJavaScriptMode(JavaScriptMode.unrestricted)
+          ..setUserAgent(_getUserAgent())
+          ..enableZoom(false)
+          ..setNavigationDelegate(
+            NavigationDelegate(
+              onWebResourceError: (error) {
+                debugPrint('WebView error: ${error.description}');
+                if (mounted) {
+                  setState(() {
+                    _hasError = true;
+                    _isLoading = false;
+                  });
+                }
+              },
+              onPageStarted: (url) {
+                debugPrint('Page started loading: $url');
+                if (mounted) {
+                  setState(() {
+                    _isLoading = true;
+                    _hasError = false;
+                  });
+                }
+              },
+              onPageFinished: (url) {
+                debugPrint('Page finished loading: $url');
+                if (mounted) {
+                  setState(() {
+                    _isLoading = false;
+                  });
+                }
+              },
+            ),
+          )
+          ..loadRequest(Uri.parse(widget.videoUrl));
+  }
+
+  String? _getUserAgent() {
+    if (Platform.isIOS) {
+      return 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1';
+    } else {
+      // For Android and other platforms, returning null uses the WebView default User-Agent.
+      return null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +104,7 @@ class VideoPlayerScreen extends StatelessWidget {
                   ),
                   Expanded(
                     child: Text(
-                      title,
+                      widget.title,
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -60,24 +124,68 @@ class VideoPlayerScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(16.0),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(16),
-                  child: WebViewWidget(
-                    controller:
-                        WebViewController()
-                          ..setJavaScriptMode(JavaScriptMode.unrestricted)
-                          ..setUserAgent(
-                            'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1',
-                          )
-                          ..enableZoom(false)
-                          ..setNavigationDelegate(
-                            NavigationDelegate(
-                              onWebResourceError: (error) {
-                                debugPrint(
-                                  'WebView error: ${error.description}',
-                                );
-                              },
+                  child: Stack(
+                    children: [
+                      WebViewWidget(controller: _controller),
+                      if (_isLoading)
+                        Container(
+                          color:
+                              isDark ? const Color(0xFF23242B) : Colors.white,
+                          child: const Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                CircularProgressIndicator(),
+                                SizedBox(height: 16),
+                                Text('Загрузка видео...'),
+                              ],
                             ),
-                          )
-                          ..loadRequest(Uri.parse(videoUrl)),
+                          ),
+                        ),
+                      if (_hasError)
+                        Container(
+                          color:
+                              isDark ? const Color(0xFF23242B) : Colors.white,
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.error_outline,
+                                  size: 48,
+                                  color: Colors.red,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Ошибка загрузки видео',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: isDark ? Colors.white : Colors.black,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Проверьте подключение к интернету',
+                                  style: TextStyle(
+                                    color:
+                                        isDark
+                                            ? Colors.white70
+                                            : Colors.grey[600],
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                ElevatedButton.icon(
+                                  onPressed: () {
+                                    _initializeController();
+                                  },
+                                  icon: const Icon(Icons.refresh),
+                                  label: const Text('Повторить'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ),
@@ -98,7 +206,7 @@ class InstructionsScreen extends StatefulWidget {
 
 class _InstructionsScreenState extends State<InstructionsScreen> {
   final String vimeoVideoUrl =
-      'https://player.vimeo.com/video/1041570908?h=5aaeb04e69&autoplay=0&loop=0&muted=0&title=1&portrait=0&byline=0';
+      'https://player.vimeo.com/video/1041570908?h=5aaeb04e69&autoplay=0&loop=0&muted=0&title=1&portrait=0&byline=0&controls=1';
   int _selectedTab = 2; // 0 - Журнал, 1 - Цели, 2 - Инструкции
 
   void _onTabTapped(int index) {

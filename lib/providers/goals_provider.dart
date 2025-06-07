@@ -26,6 +26,14 @@ class GoalsProvider extends ChangeNotifier {
   int get completedCount => _goals.where((goal) => goal.isCompleted).length;
   int get totalCount => _goals.length;
 
+  // Методы аналитики для блока статистики
+  int get totalSteps => _goals.length;
+  int get pendingSteps => _goals.where((goal) => !goal.isCompleted).length;
+  double get completedPercentage {
+    if (_goals.isEmpty) return 0;
+    return (completedCount / totalCount) * 100;
+  }
+
   /// Загрузить все цели
   Future<void> loadGoals() async {
     _setLoading(true);

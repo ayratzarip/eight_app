@@ -13,7 +13,7 @@ class GoalsInstructionsScreen extends StatefulWidget {
 
 class _GoalsInstructionsScreenState extends State<GoalsInstructionsScreen> {
   final String vimeoVideoUrl =
-      'https://player.vimeo.com/video/1059455108?h=33d55d43f5&autoplay=0&loop=0&muted=0&title=1&portrait=0&byline=0'; // Обновлённый URL
+      'https://player.vimeo.com/video/1059455108?h=33d55d43f5&autoplay=0&loop=0&muted=0&title=1&portrait=0&byline=0&controls=1'; // Обновлённый URL
   int _selectedTab = 2; // 0 - Журнал, 1 - Цели, 2 - Инструкции
 
   void _onTabTapped(int index) {

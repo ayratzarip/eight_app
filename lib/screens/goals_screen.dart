@@ -204,6 +204,64 @@ class _GoalsScreenState extends State<GoalsScreen> {
                 ],
               ),
             ),
+
+            // Блок аналитики
+            Consumer<GoalsProvider>(
+              builder: (context, provider, child) {
+                return Container(
+                  margin: const EdgeInsets.fromLTRB(24, 16, 24, 16),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 16,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF242731) : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Expanded(
+                        child: _GoalAnalyticItem(
+                          icon: Icons.stairs,
+                          label: 'Всего шагов',
+                          value: provider.totalSteps.toString(),
+                          isDark: isDark,
+                          useHeaderColor: true,
+                        ),
+                      ),
+                      Expanded(
+                        child: _GoalAnalyticItem(
+                          icon: Icons.pending_actions,
+                          label: 'Ожидают действия',
+                          value: provider.pendingSteps.toString(),
+                          color: Colors.orange,
+                          isDark: isDark,
+                        ),
+                      ),
+                      Expanded(
+                        child: _GoalAnalyticItem(
+                          icon: Icons.check_circle_outline,
+                          label: 'Завершено',
+                          value:
+                              '${provider.completedPercentage.toStringAsFixed(1)}%',
+                          color: kLogoGreen,
+                          isDark: isDark,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+
             // Строка поиска
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
@@ -536,6 +594,70 @@ class _GoalsScreenState extends State<GoalsScreen> {
         ],
       ),
       floatingActionButton: null, // Кнопка добавления теперь в AppBar
+    );
+  }
+}
+
+class _GoalAnalyticItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final bool isDark;
+  final Color? color;
+  final bool useHeaderColor;
+
+  const _GoalAnalyticItem({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.isDark,
+    this.color,
+    this.useHeaderColor = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final Color iconColor;
+    final Color valueColor;
+
+    if (useHeaderColor) {
+      // Используем цвет заголовков
+      iconColor = isDark ? Colors.white : Colors.black;
+      valueColor = isDark ? Colors.white : Colors.black;
+    } else {
+      // Используем переданный цвет или дефолтный зеленый
+      final activeColor = color ?? const Color(0xFF2f855a); // kLogoGreen
+      iconColor = activeColor;
+      valueColor = activeColor;
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 24, color: iconColor),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: isDark ? Colors.white70 : Colors.grey[600],
+          ),
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: valueColor,
+            height: 1.1,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
     );
   }
 }

@@ -248,33 +248,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Expanded(
                     child: Text(
-                      'Журнал самооценки',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
+                      'Журнал',
+                      style: theme.textTheme.headlineMedium?.copyWith(
                         color: isDark ? Colors.white : Colors.black,
-                        letterSpacing: -1,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
                   Row(
                     children: [
                       IconButton(
-                        icon: Icon(
-                          Icons.download_outlined,
-                          size: 24,
-                          color: kLogoGreen,
-                        ),
-                        tooltip: 'Экспорт в CSV',
-                        onPressed: () => _exportToCsv(context),
-                      ),
-                      IconButton(
-                        icon: Icon(
-                          Icons.add_circle_outline,
-                          size: 24,
-                          color: kLogoGreen,
-                        ),
-                        tooltip: 'Новая запись',
+                        icon: Icon(Icons.add_circle_outline, color: kLogoGreen),
                         onPressed: () {
                           Navigator.push(
                             context,
@@ -283,12 +267,85 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           );
                         },
+                        tooltip: 'Новая запись',
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.file_download_outlined),
+                        onPressed: () => _exportToCsv(context),
+                        tooltip: 'Экспорт в CSV',
                       ),
                     ],
                   ),
                 ],
               ),
             ),
+
+            // Блок аналитики
+            Consumer<DiaryProvider>(
+              builder: (context, provider, child) {
+                return Container(
+                  margin: const EdgeInsets.fromLTRB(24, 16, 24, 16),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 16,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF242731) : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Expanded(
+                        child: _AnalyticItem(
+                          icon: Icons.book_outlined,
+                          label: 'Всего записей',
+                          value: provider.totalEntries.toString(),
+                          isDark: isDark,
+                          useHeaderColor: true,
+                          isActive: provider.currentFilter == EntryFilter.all,
+                          onTap: () => provider.setFilter(EntryFilter.all),
+                        ),
+                      ),
+                      Expanded(
+                        child: _AnalyticItem(
+                          icon: Icons.check_circle_outline,
+                          label: 'Был эффективен',
+                          value:
+                              '${provider.effectiveEntriesPercentage.toStringAsFixed(1)}%',
+                          color: kLogoGreen,
+                          isDark: isDark,
+                          isActive:
+                              provider.currentFilter == EntryFilter.effective,
+                          onTap:
+                              () => provider.setFilter(EntryFilter.effective),
+                        ),
+                      ),
+                      Expanded(
+                        child: _AnalyticItem(
+                          icon: Icons.help_outline,
+                          label: 'Нужен совет',
+                          value: provider.needHelpEntries.toString(),
+                          color: Colors.orange,
+                          isDark: isDark,
+                          isActive:
+                              provider.currentFilter == EntryFilter.needHelp,
+                          onTap: () => provider.setFilter(EntryFilter.needHelp),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+
             // Строка поиска
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
@@ -348,7 +405,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           Text(
                             provider.searchQuery.isNotEmpty
                                 ? 'Записи не найдены'
-                                : 'Журнал пуст',
+                                : provider.currentFilter == EntryFilter.all
+                                ? 'Журнал пуст'
+                                : provider.currentFilter ==
+                                    EntryFilter.effective
+                                ? 'Нет эффективных записей'
+                                : 'Нет записей, требующих совета',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
@@ -359,7 +421,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           Text(
                             provider.searchQuery.isNotEmpty
                                 ? 'Попробуйте изменить поисковый запрос'
-                                : 'Нажмите + чтобы добавить первую запись',
+                                : provider.currentFilter == EntryFilter.all
+                                ? 'Нажмите + чтобы добавить первую запись'
+                                : 'Попробуйте выбрать другой фильтр',
                             style: TextStyle(
                               fontSize: 14,
                               color: isDark ? Colors.white54 : Colors.grey[500],
@@ -376,15 +440,43 @@ class _HomeScreenState extends State<HomeScreen> {
                       // Заголовок записей
                       Padding(
                         padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
-                        child: Text(
-                          provider.searchQuery.isNotEmpty
-                              ? 'Найденные записи (${entries.length})'
-                              : 'Записи',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: isDark ? Colors.white : Colors.black,
-                          ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                provider.searchQuery.isNotEmpty
+                                    ? 'Найденные записи (${entries.length})'
+                                    : provider.currentFilter ==
+                                        EntryFilter.effective
+                                    ? 'Эффективные записи (${entries.length})'
+                                    : provider.currentFilter ==
+                                        EntryFilter.needHelp
+                                    ? 'Записи, требующие совета (${entries.length})'
+                                    : 'Записи',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark ? Colors.white : Colors.black,
+                                ),
+                              ),
+                            ),
+                            if (provider.currentFilter != EntryFilter.all)
+                              TextButton.icon(
+                                onPressed:
+                                    () => provider.setFilter(EntryFilter.all),
+                                icon: const Icon(Icons.clear, size: 16),
+                                label: const Text('Сбросить'),
+                                style: TextButton.styleFrom(
+                                  foregroundColor:
+                                      isDark
+                                          ? Colors.white70
+                                          : Colors.grey[600],
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                       ),
                       // Контейнер с записями
@@ -574,6 +666,96 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         );
       },
+    );
+  }
+}
+
+class _AnalyticItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final bool isDark;
+  final Color? color;
+  final bool useHeaderColor;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  const _AnalyticItem({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.isDark,
+    this.color,
+    this.useHeaderColor = false,
+    this.isActive = false,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final Color iconColor;
+    final Color valueColor;
+
+    if (useHeaderColor) {
+      // Используем цвет заголовков
+      iconColor = isDark ? Colors.white : Colors.black;
+      valueColor = isDark ? Colors.white : Colors.black;
+    } else {
+      // Используем переданный цвет или дефолтный зеленый
+      final activeColor = color ?? const Color(0xFF2f855a); // kLogoGreen
+      iconColor = activeColor;
+      valueColor = activeColor;
+    }
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+        decoration:
+            isActive
+                ? BoxDecoration(
+                  color:
+                      (useHeaderColor
+                          ? (isDark
+                              ? Colors.white.withValues(alpha: 0.1)
+                              : Colors.black.withValues(alpha: 0.05))
+                          : (color ?? const Color(0xFF2f855a)).withValues(
+                            alpha: 0.1,
+                          )),
+                  borderRadius: BorderRadius.circular(8),
+                )
+                : null,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 24, color: iconColor),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: isDark ? Colors.white70 : Colors.grey[600],
+                fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: valueColor,
+                height: 1.1,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
