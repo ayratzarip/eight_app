@@ -452,7 +452,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
         return _buildGenericStep(
           step,
           _situationController,
-          'Опишите подробно, что произошло...',
+          'Опишите, что произошло...',
           Icons.description,
         );
       case FormStep.attention:
@@ -546,7 +546,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
           children: [
             Text(
               _selectedAttentionOption == null
-                  ? 'Выберите один из вариантов или опишите свой:'
+                  ? 'Выберите один из вариантов и уточните:'
                   : 'Выбран вариант: "$_selectedAttentionOption". Можете уточнить ниже.',
               style: TextStyle(
                 fontSize: 15,
@@ -634,7 +634,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
           children: [
             Text(
               _selectedThoughtOption == null
-                  ? 'Какие мысли у вас возникали? Выберите один из вариантов или опишите свои:'
+                  ? 'Какие мысли у вас возникали? Выберите один из вариантов и уточните:'
                   : 'Выбран вариант: "$_selectedThoughtOption".',
               style: TextStyle(
                 fontSize: 15,
@@ -680,7 +680,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
               decoration: InputDecoration(
                 hintText:
                     _selectedThoughtOption == null
-                        ? 'Опишите свои мысли подробно...'
+                        ? 'Опишите свои мысли...'
                         : 'Ваши уточнения по мыслям...',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -838,8 +838,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                 color: isDark ? Colors.white : Colors.black87,
               ),
               decoration: InputDecoration(
-                hintText:
-                    'Что вы чувствовали в теле? (напряжение, дрожь, жар и т.д.)',
+                hintText: 'Что вы чувствовали в теле?',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(color: Colors.grey[400]!),
