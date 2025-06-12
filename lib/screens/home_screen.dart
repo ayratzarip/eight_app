@@ -156,7 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       if (kIsWeb) {
         // Для веб-версии используем share_plus
-        await Share.share(csvData, subject: 'Экспорт журнала самооценки');
+        await Share.share(csvData, subject: 'Экспорт журнала самонаблюдения');
 
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -178,9 +178,9 @@ class _HomeScreenState extends State<HomeScreen> {
         // Делимся файлом через системное меню
         final result = await Share.shareXFiles(
           [XFile(file.path)],
-          subject: 'Экспорт журнала самооценки',
+          subject: 'Экспорт журнала самонаблюдения',
           text:
-              'Экспорт данных из приложения "Журнал самооценки" за ${DateFormat('dd.MM.yyyy').format(DateTime.now())}',
+              'Экспорт данных из приложения "Журнал самонаблюдения" за ${DateFormat('dd.MM.yyyy').format(DateTime.now())}',
         );
 
         if (context.mounted) {
