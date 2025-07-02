@@ -108,7 +108,7 @@ class _GoalsInstructionsScreenState extends State<GoalsInstructionsScreen> {
                           context: context,
                           title: 'Как формировать шаги к цели',
                           description:
-                              'Принципы создания эффективных и достижимых шагов',
+                              'Пошаговое руководство по созданию эффективных шагов к цели',
                           icon: Icons.edit_outlined,
                           content: _buildStepFormationContent(context, isDark),
                         ),
@@ -281,65 +281,120 @@ class _GoalsInstructionsScreenState extends State<GoalsInstructionsScreen> {
 
   Widget _buildStepFormationContent(BuildContext context, bool isDark) {
     final principles = [
-      '• Конкретность - цель должна быть четко сформулирована',
-      '• Измеримость - прогресс должен быть измеримым',
-      '• Достижимость - цель должна быть реалистичной',
-      '• Релевантность - цель должна быть важной для вас',
-      '• Определенность во времени - установите конкретные сроки',
-      '• Разбивайте большие цели на подцели',
-      '• Записывайте цели и регулярно их пересматривайте',
+      '1. Формируем мечту.',
+      '• Представьте, где вы хотите оказаться через 10–20 лет.',
+      '• Не ограничивайте себя. Это мечта, а не план.',
+      '• Проживите воображаемый день в этом будущем: работа, место, люди рядом.',
+
+      '2. Строим план от конца.',
+      '• От мечты — назад, шаг за шагом, пока не дойдёте до того, что реально достижимо через 1–1,5 года.',
+      '• Это и будет ваша цель на проект.',
+
+      '3. Формулируем цель.',
+      'Цель формулируется по правилу SMART.',
+      '• S — Specific (конкретная): цель должна быть чёткой.',
+      '• M — Measurable (измеримая): важно понимать, как измерить результат.',
+      '• A — Achievable (достижимая): цель должна быть реалистичной.',
+      '• R — Relevant (значимая): цель имеет смысл для вас.',
+      '• T — Time-bound (ограничена по времени): у цели есть срок.',
+      'Записываем цель на соответствующей странице нашего приложения.',
+
+      '4. Продумываем шаги к цели.',
+      '• Разбейте путь на мелкие, реалистичные действия.',
+      '• Слишком большой шаг = сложно. Слишком маленький = неэффективно.',
+
+      '5. Добавляем тренировочные шаги.',
+      '• Придумайте ситуации, где вы чувствуете лёгкую и сильную неловкость.',
+      '• Впишите как задания. Упорядочьте их от простого к сложному.',
     ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children:
-          principles
-              .map(
-                (principle) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: Text(
-                    principle,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: isDark ? Colors.white70 : Colors.grey[700],
-                      height: 1.4,
-                    ),
-                  ),
+          principles.map((principle) {
+            // Проверяем, начинается ли строка с цифры и точки (заголовок пункта)
+            final isMainPoint = RegExp(r'^\d+\.\s').hasMatch(principle);
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: Text(
+                principle,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: isMainPoint ? FontWeight.bold : FontWeight.normal,
+                  color:
+                      isMainPoint
+                          ? (isDark ? Colors.white : Colors.black87)
+                          : (isDark ? Colors.white70 : Colors.grey[700]),
+                  height: 1.4,
                 ),
-              )
-              .toList(),
+              ),
+            );
+          }).toList(),
     );
   }
 
   Widget _buildTipsContent(BuildContext context, bool isDark) {
     final tips = [
-      '• Ведите ежедневник для отслеживания действий',
-      '• Еженедельно анализируйте прогресс и корректируйте планы',
-      '• Используйте метрики для измерения прогресса',
-      '• Отмечайте препятствия и ищите способы их преодоления',
-      '• Празднуйте достижения, даже маленькие',
-      '• Будьте готовы изменить подход, если что-то не работает',
-      '• Регулярно напоминайте себе о важности цели',
+      'Первое правило: мы формируем положительную и конструктивную цель. Тревога и застенчивость становятся проблемами только в том случае, если они стоят на дороге к цели.',
+      'Второе правило: план строится от конца, шаг за шагом двигаясь к сегодняшнему дню.',
+      'Третье правило: шаги должны быть равномерные и средние, чтобы не уставать и не спотыкаться.',
     ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children:
-          tips
-              .map(
-                (tip) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: Text(
-                    tip,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: isDark ? Colors.white70 : Colors.grey[700],
-                      height: 1.4,
-                    ),
+          tips.map((tip) {
+            // Находим позицию двоеточия для разделения на жирную и обычную часть
+            final colonIndex = tip.indexOf(':');
+            if (colonIndex != -1) {
+              final boldPart = tip.substring(
+                0,
+                colonIndex + 1,
+              ); // включаем двоеточие
+              final regularPart = tip.substring(colonIndex + 1);
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: boldPart,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Colors.black87,
+                          height: 1.4,
+                        ),
+                      ),
+                      TextSpan(
+                        text: regularPart,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: isDark ? Colors.white70 : Colors.grey[700],
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              )
-              .toList(),
+              );
+            } else {
+              // Если двоеточие не найдено, отображаем как обычный текст
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Text(
+                  tip,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isDark ? Colors.white70 : Colors.grey[700],
+                    height: 1.4,
+                  ),
+                ),
+              );
+            }
+          }).toList(),
     );
   }
 }

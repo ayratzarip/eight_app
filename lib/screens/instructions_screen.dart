@@ -544,27 +544,39 @@ class _InstructionsScreenState extends State<InstructionsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children:
-          steps
-              .map(
-                (step) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: Text(
-                    step,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: isDark ? Colors.white70 : Colors.grey[700],
-                      height: 1.4,
-                    ),
-                  ),
+          steps.map((step) {
+            // Проверяем, является ли строка заголовком раздела (римские цифры)
+            final isMainSection = RegExp(r'^[IVX]+\.\s').hasMatch(step);
+            // Проверяем, является ли строка "Примеры:" или "Пример:"
+            final isExampleHeader =
+                step.startsWith('Примеры:') || step.startsWith('Пример:');
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: Text(
+                step,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight:
+                      (isMainSection || isExampleHeader)
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                  color:
+                      (isMainSection || isExampleHeader)
+                          ? (isDark ? Colors.white : Colors.black87)
+                          : (isDark ? Colors.white70 : Colors.grey[700]),
+                  height: 1.4,
                 ),
-              )
-              .toList(),
+              ),
+            );
+          }).toList(),
     );
   }
 
   Widget _buildTipsContent(BuildContext context, bool isDark) {
     final tips = [
-      'Журнал — это инструмент наблюдения и анализа, а не просто дневник. Он нужен чтобы:',
+      'Журнал — это инструмент наблюдения и анализа, а не просто дневник.',
+      'Журнал нужен чтобы:',
       '• разделять эмоции, мысли и фокус внимания;',
       '• замечать эмоции, мысли и фокус внимания;',
       '• выявлять паттерны поведения;',
@@ -580,21 +592,27 @@ class _InstructionsScreenState extends State<InstructionsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children:
-          tips
-              .map(
-                (tip) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: Text(
-                    tip,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: isDark ? Colors.white70 : Colors.grey[700],
-                      height: 1.4,
-                    ),
-                  ),
+          tips.map((tip) {
+            // Проверяем, является ли строка заголовком подраздела
+            final isSubHeader =
+                tip == 'Журнал нужен чтобы:' || tip == 'Когда заполнять:';
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: Text(
+                tip,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: isSubHeader ? FontWeight.bold : FontWeight.normal,
+                  color:
+                      isSubHeader
+                          ? (isDark ? Colors.white : Colors.black87)
+                          : (isDark ? Colors.white70 : Colors.grey[700]),
+                  height: 1.4,
                 ),
-              )
-              .toList(),
+              ),
+            );
+          }).toList(),
     );
   }
 }
