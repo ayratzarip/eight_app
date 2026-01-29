@@ -1,5 +1,5 @@
-name: eight_logbook
-description: "Soft Skills Engine: Logbook - Журнал самонаблюдения для застенчивых людей"
+name: logbook
+description: "Logbook - Журнал самонаблюдения"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -14,8 +14,6 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number is used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-# In Windows, build-name is used as the major, minor, and patch parts
-# of the product and file versions while build-number is used as the build suffix.
 version: 1.0.0+1
 
 environment:
@@ -34,6 +32,9 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  
+  # Google Fonts для типографики
+  google_fonts: ^6.1.0
   
   # Локальное хранилище данных
   sqflite: ^2.3.0
@@ -128,17 +129,10 @@ flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
   remove_alpha_ios: true
-  image_path: "assets/images/logo_green.png"
+  image_path: "icon.jpg"
   min_sdk_android: 21 # android min sdk min:16, default 21
   web:
     generate: true
-    image_path: "assets/images/logo_green.png"
-    background_color: "#2f855a"
-    theme_color: "#2f855a"
-  windows:
-    generate: true
-    image_path: "assets/images/logo_green.png"
-    icon_size: 48 # min:48, max:256, default: 48
-  macos:
-    generate: true
-    image_path: "assets/images/logo_green.png"
+    image_path: "icon.jpg"
+    background_color: "#ffffff"
+    theme_color: "#ffffff"

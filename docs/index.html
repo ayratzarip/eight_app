@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - Logbook</title>
+    <style>
+        :root {
+            --primary-color: #007aff; /* iOS Blue */
+            --bg-color: #f2f2f7;
+            --card-bg: #ffffff;
+            --text-color: #1c1c1e;
+            --secondary-text: #8e8e93;
+            --warning-bg: #fff3cd;
+            --warning-text: #856404;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: var(--card-bg);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        /* Language Switcher */
+        .lang-switch {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+
+        .lang-btn {
+            background: none;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 5px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .lang-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .lang-btn:hover {
+            opacity: 0.8;
+        }
+
+        /* Content Styles */
+        h1 {
+            border-bottom: 1px solid #e5e5ea;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            margin-top: 30px;
+            font-size: 1.3em;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .disclaimer {
+            background-color: var(--warning-bg);
+            color: var(--warning-text);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 30px;
+            font-size: 0.95em;
+            border: 1px solid #ffeeba;
+        }
+
+        .contact {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e5ea;
+            font-size: 0.9em;
+            color: var(--secondary-text);
+        }
+
+        a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        /* Utility */
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .container { padding: 25px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <!-- Language Controls -->
+    <div class="lang-switch">
+        <button class="lang-btn active" onclick="setLang('en')" id="btn-en">English</button>
+        <button class="lang-btn" onclick="setLang('ru')" id="btn-ru">Русский</button>
+    </div>
+
+    <!-- ENGLISH CONTENT -->
+    <div id="content-en">
+        <h1>Privacy Policy</h1>
+        <p><strong>Last updated:</strong> January 14, 2026</p>
+
+        <p>Logbook ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how your personal information is handled by the Logbook mobile application.</p>
+
+        <h2>1. No Data Collection</h2>
+        <p>We prioritize your privacy and anonymity above all else.</p>
+        <ul>
+            <li><strong>No Server Storage:</strong> We do not operate a backend server. We do not collect, transmit, or store any of your personal data in the cloud.</li>
+            <li><strong>Local Storage Only:</strong> All data you enter into the App (diary entries, triggers, thoughts) is stored locally on your device using a secure local database (SQLite).</li>
+            <li><strong>Full Control:</strong> Since the data resides solely on your device, deleting the App will permanently delete all data associated with it.</li>
+        </ul>
+
+        <h2>2. No Tracking</h2>
+        <p>We <strong>do not</strong> use third-party analytics services (such as Google Analytics, Firebase, or Mixpanel) to track your usage or behavior within the App.</p>
+
+        <h2>3. No Account Required</h2>
+        <p>The App does not require you to create an account, log in, or provide any personal identification to use its features.</p>
+
+        <h2>4. Data Usage & Export</h2>
+        <p>Data is used exclusively to provide the App's functionality locally. If you use the "Export" or "Copy for AI" features, data leaves the secure environment of the App only at your explicit command. You are responsible for the security of this data once exported.</p>
+
+        <div class="disclaimer">
+            <strong>⚠️ Medical Disclaimer</strong><br>
+            Logbook is a self-help tool based on CBT principles. It is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or qualified health provider regarding social anxiety disorder.
+        </div>
+
+        <div class="contact">
+            <h2>Contact Us</h2>
+            <p>If you have any questions about this Privacy Policy, please contact us:</p>
+            <p>📧 <a href="mailto:draazaripov@yandex.ru">draazaripov@yandex.ru</a></p>
+        </div>
+    </div>
+
+    <!-- RUSSIAN CONTENT -->
+    <div id="content-ru" class="hidden">
+        <h1>Политика конфиденциальности</h1>
+        <p><strong>Дата обновления:</strong> 14 Января 2026</p>
+
+        <p>Приложение Logbook («мы», «нас») с уважением относится к вашей конфиденциальности. Данная Политика объясняет, как обрабатываются ваши данные.</p>
+
+        <h2>1. Отсутствие сбора данных</h2>
+        <p>Мы ставим вашу анонимность на первое место.</p>
+        <ul>
+            <li><strong>Нет серверов:</strong> У нас нет серверной части. Мы не отправляем, не собираем и не храним ваши данные в облаке.</li>
+            <li><strong>Только локальное хранение:</strong> Все данные, которые вы вносите (записи дневника, триггеры, мысли), хранятся исключительно в памяти вашего телефона (в защищенной локальной базе данных).</li>
+            <li><strong>Полный контроль:</strong> Поскольку данные находятся только у вас, удаление приложения приведет к безвозвратному удалению всех записей.</li>
+        </ul>
+
+        <h2>2. Отсутствие слежки</h2>
+        <p>Мы <strong>не используем</strong> сторонние сервисы аналитики (такие как Google Analytics, Firebase или Mixpanel) для отслеживания ваших действий внутри приложения.</p>
+
+        <h2>3. Без регистрации</h2>
+        <p>Для использования приложения не нужно создавать аккаунт, входить в систему или предоставлять email/номер телефона.</p>
+
+        <h2>4. Использование и экспорт</h2>
+        <p>Данные используются только для отображения статистики внутри приложения. Если вы используете функции «Экспорт» или «Копировать для AI», данные покидают приложение только по вашей команде. Вы сами несете ответственность за сохранность скопированных данных.</p>
+
+        <div class="disclaimer">
+            <strong>⚠️ Медицинский отказ от ответственности</strong><br>
+            Logbook — это инструмент самопомощи, основанный на принципах КПТ. Приложение не заменяет профессиональную медицинскую помощь, диагностику или лечение. При проблемах с социальной тревогой всегда обращайтесь к квалифицированным специалистам.
+        </div>
+
+        <div class="contact">
+            <h2>Свяжитесь с нами</h2>
+            <p>Если у вас есть вопросы по политике конфиденциальности, напишите нам:</p>
+            <p>📧 <a href="mailto:draazaripov@yandex.ru">draazaripov@yandex.ru</a></p>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function setLang(lang) {
+        // Toggle Buttons
+        document.getElementById('btn-en').classList.remove('active');
+        document.getElementById('btn-ru').classList.remove('active');
+        document.getElementById('btn-' + lang).classList.add('active');
+
+        // Toggle Content
+        document.getElementById('content-en').classList.add('hidden');
+        document.getElementById('content-ru').classList.add('hidden');
+        document.getElementById('content-' + lang).classList.remove('hidden');
+    }
+</script>
+
+</body>
+</html>

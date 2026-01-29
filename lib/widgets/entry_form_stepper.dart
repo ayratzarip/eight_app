@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../models/diary_entry.dart';
 import '../providers/diary_provider.dart';
+import '../styles/app_styles.dart';
 
 enum FormStep {
   situation,
@@ -128,29 +130,59 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
 
       // Разбор поля bodySensations для интенсивности и текста
       final bodySensationsFullText = entry.bodySensations;
-      final dotIndex = bodySensationsFullText.indexOf('.');
 
-      // Проверяем, что точка есть, она не первый и не последний символ
-      if (dotIndex > 0 && dotIndex < bodySensationsFullText.length - 1) {
-        final intensityString = bodySensationsFullText.substring(0, dotIndex);
-        final descriptionString =
-            bodySensationsFullText.substring(dotIndex + 1).trimLeft();
-        final parsedIntensity = double.tryParse(intensityString);
+      // Проверяем новый формат: "Интенсивность ощущения X из 10. описание"
+      final intensityPattern = RegExp(r'Интенсивность ощущения (\d+) из 10\.');
+      final match = intensityPattern.firstMatch(bodySensationsFullText);
+
+      if (match != null) {
+        // Найден новый формат
+        final intensityString = match.group(1);
+        final parsedIntensity = double.tryParse(intensityString ?? '');
 
         if (parsedIntensity != null &&
             parsedIntensity >= 0 &&
             parsedIntensity <= 10) {
           _bodySensationsIntensity = parsedIntensity;
-          _bodySensationsController.text = descriptionString;
+          // Извлекаем описание после "Интенсивность ощущения X из 10. "
+          final descriptionStart = match.end;
+          if (descriptionStart < bodySensationsFullText.length) {
+            _bodySensationsController.text =
+                bodySensationsFullText.substring(descriptionStart).trimLeft();
+          } else {
+            _bodySensationsController.text = '';
+          }
         } else {
-          // Если парсинг не удался или интенсивность вне диапазона, считаем весь текст описанием
+          // Если парсинг не удался, считаем весь текст описанием
           _bodySensationsController.text = bodySensationsFullText;
-          // _bodySensationsIntensity остается значением по умолчанию (0.0)
+          _bodySensationsIntensity = 0.0;
         }
       } else {
-        // Если нет точки или формат неверный, считаем весь текст описанием
-        _bodySensationsController.text = bodySensationsFullText;
-        // _bodySensationsIntensity остается значением по умолчанию (0.0)
+        // Старый формат или формат без интенсивности: "X. описание" или просто текст
+        final dotIndex = bodySensationsFullText.indexOf('.');
+
+        if (dotIndex > 0 && dotIndex < bodySensationsFullText.length - 1) {
+          final intensityString = bodySensationsFullText.substring(0, dotIndex);
+          final descriptionString =
+              bodySensationsFullText.substring(dotIndex + 1).trimLeft();
+          final parsedIntensity = double.tryParse(intensityString);
+
+          if (parsedIntensity != null &&
+              parsedIntensity >= 0 &&
+              parsedIntensity <= 10) {
+            // Старый формат найден
+            _bodySensationsIntensity = parsedIntensity;
+            _bodySensationsController.text = descriptionString;
+          } else {
+            // Если парсинг не удался, считаем весь текст описанием
+            _bodySensationsController.text = bodySensationsFullText;
+            _bodySensationsIntensity = 0.0;
+          }
+        } else {
+          // Если нет точки или формат неверный, считаем весь текст описанием
+          _bodySensationsController.text = bodySensationsFullText;
+          _bodySensationsIntensity = 0.0;
+        }
       }
 
       // Разбор поля actions для текста и результата
@@ -364,7 +396,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
 
     // Формируем значение для bodySensations
     String bodySensationsValue =
-        "${_bodySensationsIntensity.round()}. ${_bodySensationsController.text.trim()}";
+        "Интенсивность ощущения ${_bodySensationsIntensity.round()} из 10. ${_bodySensationsController.text.trim()}";
 
     // Формируем значение для actions
     String actionsText = _actionsController.text.trim();
@@ -479,7 +511,6 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
-    const Color kLogoGreen = Color(0xFF2f855a);
 
     return Padding(
       padding: EdgeInsets.all(
@@ -495,6 +526,9 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
               maxLines:
                   isLandscape ? 3 : 5, // Меньше строк в горизонтальном режиме
               minLines: isLandscape ? 2 : 3,
+              textInputAction: TextInputAction.next,
+              onSubmitted: (_) => _nextPage(),
+              cursorColor: isDark ? Colors.white : Colors.black87,
               style: TextStyle(
                 fontSize: 16,
                 color: isDark ? Colors.white : Colors.black87,
@@ -502,12 +536,12 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
               decoration: InputDecoration(
                 hintText: hintText,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
                   borderSide: BorderSide(color: Colors.grey[400]!),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: kLogoGreen, width: 2),
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
+                  borderSide: BorderSide(color: AppColors.logoGreen, width: 2),
                 ),
                 filled: true,
                 fillColor: isDark ? const Color(0xFF23242B) : Colors.white,
@@ -534,7 +568,6 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
-    const Color kLogoGreen = Color(0xFF2f855a);
 
     return Padding(
       padding: EdgeInsets.all(
@@ -567,7 +600,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                     _selectedAttentionOption = value;
                   });
                 },
-                activeColor: kLogoGreen,
+                activeColor: AppColors.logoGreen,
                 contentPadding: EdgeInsets.zero,
                 dense: isLandscape, // Компактнее в горизонтальном режиме
               );
@@ -580,6 +613,9 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
               maxLines:
                   isLandscape ? 2 : 3, // Меньше строк в горизонтальном режиме
               minLines: 2,
+              textInputAction: TextInputAction.next,
+              onSubmitted: (_) => _nextPage(),
+              cursorColor: isDark ? Colors.white : Colors.black87,
               style: TextStyle(
                 fontSize: 16,
                 color: isDark ? Colors.white : Colors.black87,
@@ -590,12 +626,12 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                         ? 'На чем было сосредоточено ваше внимание?'
                         : 'Ваши уточнения по фокусу внимания...',
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
                   borderSide: BorderSide(color: Colors.grey[400]!),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: kLogoGreen, width: 2),
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
+                  borderSide: BorderSide(color: AppColors.logoGreen, width: 2),
                 ),
                 filled: true,
                 fillColor: isDark ? const Color(0xFF23242B) : Colors.white,
@@ -622,7 +658,6 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
-    const Color kLogoGreen = Color(0xFF2f855a);
 
     return Padding(
       padding: EdgeInsets.all(
@@ -660,7 +695,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                     }
                   });
                 },
-                activeColor: kLogoGreen,
+                activeColor: AppColors.logoGreen,
                 contentPadding: EdgeInsets.zero,
                 dense: isLandscape, // Компактнее в горизонтальном режиме
               );
@@ -674,6 +709,9 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
               maxLines:
                   isLandscape ? 2 : 3, // Меньше строк в горизонтальном режиме
               minLines: 2,
+              textInputAction: TextInputAction.next,
+              onSubmitted: (_) => _nextPage(),
+              cursorColor: isDark ? Colors.white : Colors.black87,
               style: TextStyle(
                 fontSize: 16,
                 color: isDark ? Colors.white : Colors.black87,
@@ -684,12 +722,12 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                         ? 'Опишите свои мысли...'
                         : 'Ваши уточнения по мыслям...',
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
                   borderSide: BorderSide(color: Colors.grey[400]!),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: kLogoGreen, width: 2),
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
+                  borderSide: BorderSide(color: AppColors.logoGreen, width: 2),
                 ),
                 filled: true,
                 fillColor: isDark ? const Color(0xFF23242B) : Colors.white,
@@ -723,7 +761,6 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
-    const Color kLogoGreen = Color(0xFF2f855a);
 
     return Padding(
       padding: EdgeInsets.all(
@@ -834,6 +871,9 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
               maxLines:
                   isLandscape ? 2 : 3, // Меньше строк в горизонтальном режиме
               minLines: 2,
+              textInputAction: TextInputAction.next,
+              onSubmitted: (_) => _nextPage(),
+              cursorColor: isDark ? Colors.white : Colors.black87,
               style: TextStyle(
                 fontSize: 16,
                 color: isDark ? Colors.white : Colors.black87,
@@ -841,12 +881,12 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
               decoration: InputDecoration(
                 hintText: 'Что вы чувствовали в теле?',
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
                   borderSide: BorderSide(color: Colors.grey[400]!),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: kLogoGreen, width: 2),
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
+                  borderSide: BorderSide(color: AppColors.logoGreen, width: 2),
                 ),
                 filled: true,
                 fillColor: isDark ? const Color(0xFF23242B) : Colors.white,
@@ -873,7 +913,6 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
-    const Color kLogoGreen = Color(0xFF2f855a);
 
     return Padding(
       padding: EdgeInsets.all(
@@ -900,6 +939,9 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
               maxLines:
                   isLandscape ? 2 : 3, // Меньше строк в горизонтальном режиме
               minLines: 2,
+              textInputAction: TextInputAction.next,
+              onSubmitted: (_) => _nextPage(),
+              cursorColor: isDark ? Colors.white : Colors.black87,
               style: TextStyle(
                 fontSize: 16,
                 color: isDark ? Colors.white : Colors.black87,
@@ -907,12 +949,12 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
               decoration: InputDecoration(
                 hintText: 'Опишите ваши действия...',
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
                   borderSide: BorderSide(color: Colors.grey[400]!),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: kLogoGreen, width: 2),
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
+                  borderSide: BorderSide(color: AppColors.logoGreen, width: 2),
                 ),
                 filled: true,
                 fillColor: isDark ? const Color(0xFF23242B) : Colors.white,
@@ -942,7 +984,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                     _selectedActionResult = value;
                   });
                 },
-                activeColor: kLogoGreen,
+                activeColor: AppColors.logoGreen,
                 contentPadding: EdgeInsets.zero,
                 dense: isLandscape, // Компактнее в горизонтальном режиме
               );
@@ -968,7 +1010,6 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
-    const Color kLogoGreen = Color(0xFF2f855a);
 
     return Padding(
       padding: EdgeInsets.all(
@@ -1001,7 +1042,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                     _selectedFutureActionOption = value;
                   });
                 },
-                activeColor: kLogoGreen,
+                activeColor: AppColors.logoGreen,
                 contentPadding: EdgeInsets.zero,
                 dense: isLandscape, // Компактнее в горизонтальном режиме
               );
@@ -1035,6 +1076,9 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                               ? 2
                               : 3, // Меньше строк в горизонтальном режиме
                       minLines: 2,
+                      textInputAction: TextInputAction.done,
+                      onSubmitted: (_) => _nextPage(),
+                      cursorColor: isDark ? Colors.white : Colors.black87,
                       style: TextStyle(
                         fontSize: 16,
                         color: isDark ? Colors.white : Colors.black87,
@@ -1042,12 +1086,15 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                       decoration: InputDecoration(
                         hintText: 'Опишите ваши будущие шаги...',
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppRadius.medium),
                           borderSide: BorderSide(color: Colors.grey[400]!),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: kLogoGreen, width: 2),
+                          borderRadius: BorderRadius.circular(AppRadius.medium),
+                          borderSide: BorderSide(
+                            color: AppColors.logoGreen,
+                            width: 2,
+                          ),
                         ),
                         filled: true,
                         fillColor:
@@ -1082,9 +1129,6 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
     final orientation = MediaQuery.of(context).orientation;
     final isLandscape = orientation == Orientation.landscape;
 
-    // Цвет Tailwind text-green-700
-    const Color kLogoGreen = Color(0xFF2f855a);
-
     String nextButtonText = 'Далее';
     IconData nextButtonIcon = Icons.arrow_forward_ios;
     if (_currentStep == FormStep.actions) {
@@ -1098,161 +1142,210 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
     }
     final isFirstStep = _currentStep == FormStep.situation;
 
-    return Scaffold(
-      resizeToAvoidBottomInset: true,
-      backgroundColor:
-          isDark ? const Color(0xFF181A20) : const Color(0xFFF7F8FA),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minHeight:
-                  MediaQuery.of(context).size.height -
-                  MediaQuery.of(context).padding.top -
-                  MediaQuery.of(context).padding.bottom,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Крупный заголовок и кнопка закрытия - компактнее в горизонтальном режиме
-                Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    isLandscape ? 16 : 24,
-                    isLandscape ? 8 : 18,
-                    isLandscape ? 16 : 24,
-                    0,
+    return Shortcuts(
+      shortcuts: {
+        LogicalKeySet(LogicalKeyboardKey.arrowUp): const _PreviousStepIntent(),
+        LogicalKeySet(LogicalKeyboardKey.arrowDown): const _NextStepIntent(),
+      },
+      child: Actions(
+        actions: {
+          _PreviousStepIntent: CallbackAction<_PreviousStepIntent>(
+            onInvoke: (_) {
+              if (!isFirstStep) {
+                _previousPage();
+              }
+              return null;
+            },
+          ),
+          _NextStepIntent: CallbackAction<_NextStepIntent>(
+            onInvoke: (_) {
+              _nextPage();
+              return null;
+            },
+          ),
+        },
+        child: Focus(
+          autofocus: true,
+          child: Scaffold(
+            resizeToAvoidBottomInset: true,
+            backgroundColor:
+                isDark ? const Color(0xFF181A20) : const Color(0xFFF7F8FA),
+            body: SafeArea(
+              child: SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight:
+                        MediaQuery.of(context).size.height -
+                        MediaQuery.of(context).padding.top -
+                        MediaQuery.of(context).padding.bottom,
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
+                      // Крупный заголовок и кнопка закрытия - компактнее в горизонтальном режиме
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          isLandscape ? 16 : 24,
+                          isLandscape ? 8 : 18,
+                          isLandscape ? 16 : 24,
+                          0,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                _isEditing
+                                    ? 'Редактировать запись'
+                                    : 'Новая запись',
+                                style: TextStyle(
+                                  fontSize:
+                                      isLandscape
+                                          ? 24
+                                          : 32, // Меньше в горизонтальном режиме
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? Colors.white : Colors.black,
+                                  letterSpacing: -1,
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(
+                                Icons.close,
+                                size: isLandscape ? 20 : 24,
+                                color: Theme.of(context).colorScheme.error,
+                              ),
+                              tooltip: 'Закрыть',
+                              onPressed: () => Navigator.of(context).pop(),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Заголовок текущего шага - компактнее в горизонтальном режиме
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          isLandscape ? 16 : 24,
+                          isLandscape ? 4 : 12,
+                          isLandscape ? 16 : 24,
+                          0,
+                        ),
                         child: Text(
-                          _isEditing ? 'Редактировать запись' : 'Новая запись',
+                          _getStepTitle(_currentStep),
                           style: TextStyle(
                             fontSize:
                                 isLandscape
-                                    ? 24
-                                    : 32, // Меньше в горизонтальном режиме
-                            fontWeight: FontWeight.bold,
+                                    ? 16
+                                    : 18, // Меньше в горизонтальном режиме
+                            fontWeight: FontWeight.w600,
                             color: isDark ? Colors.white : Colors.black,
-                            letterSpacing: -1,
                           ),
                         ),
                       ),
-                      IconButton(
-                        icon: Icon(
-                          Icons.close,
-                          size: isLandscape ? 20 : 24,
-                          color: kLogoGreen,
+                      // Индикатор прогресса - компактнее в горизонтальном режиме
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          isLandscape ? 16 : 24,
+                          isLandscape ? 4 : 8,
+                          isLandscape ? 16 : 24,
+                          0,
                         ),
-                        tooltip: 'Закрыть',
-                        onPressed: () => Navigator.of(context).pop(),
+                        child: LinearProgressIndicator(
+                          value:
+                              (FormStep.values.indexOf(_currentStep) + 1) /
+                              FormStep.values.length,
+                          backgroundColor:
+                              isDark ? Colors.white24 : Colors.grey[300],
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            AppColors.logoGreen,
+                          ),
+                          minHeight:
+                              isLandscape
+                                  ? 3
+                                  : 4, // Тоньше в горизонтальном режиме
+                        ),
+                      ),
+                      // Контент текущего шага
+                      _buildStep(_currentStep),
+                      // Фиксированная нижняя панель навигации - теперь часть скролла
+                      Container(
+                        color:
+                            isDark
+                                ? const Color(0xFF181A20)
+                                : const Color(0xFFF7F8FA),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: isLandscape ? 12.0 : 16.0,
+                            vertical:
+                                isLandscape
+                                    ? 8.0
+                                    : 16.0, // Меньше в горизонтальном режиме
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: <Widget>[
+                              IconButton(
+                                icon: Icon(
+                                  isFirstStep
+                                      ? Icons.close
+                                      : Icons.arrow_back_ios,
+                                  color:
+                                      isFirstStep
+                                          ? Theme.of(context).colorScheme.error
+                                          : AppColors.logoGreen,
+                                  size:
+                                      isLandscape
+                                          ? 24
+                                          : 28, // Меньше в горизонтальном режиме
+                                ),
+                                tooltip: isFirstStep ? 'Отменить' : 'Назад',
+                                onPressed: _previousPage,
+                              ),
+                              Text(
+                                'Шаг ${_currentStep.index + 1} из ${FormStep.values.length}',
+                                style: TextStyle(
+                                  color:
+                                      isDark
+                                          ? Colors.white70
+                                          : Colors.grey[600],
+                                  fontSize:
+                                      isLandscape
+                                          ? 12
+                                          : 14, // Меньше в горизонтальном режиме
+                                ),
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  nextButtonIcon,
+                                  color: AppColors.logoGreen,
+                                  size:
+                                      isLandscape
+                                          ? 24
+                                          : 28, // Меньше в горизонтальном режиме
+                                ),
+                                tooltip: nextButtonText,
+                                onPressed: _nextPage,
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ),
-                // Заголовок текущего шага - компактнее в горизонтальном режиме
-                Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    isLandscape ? 16 : 24,
-                    isLandscape ? 4 : 12,
-                    isLandscape ? 16 : 24,
-                    0,
-                  ),
-                  child: Text(
-                    _getStepTitle(_currentStep),
-                    style: TextStyle(
-                      fontSize:
-                          isLandscape
-                              ? 16
-                              : 18, // Меньше в горизонтальном режиме
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.white : Colors.black,
-                    ),
-                  ),
-                ),
-                // Индикатор прогресса - компактнее в горизонтальном режиме
-                Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    isLandscape ? 16 : 24,
-                    isLandscape ? 4 : 8,
-                    isLandscape ? 16 : 24,
-                    0,
-                  ),
-                  child: LinearProgressIndicator(
-                    value:
-                        (FormStep.values.indexOf(_currentStep) + 1) /
-                        FormStep.values.length,
-                    backgroundColor: isDark ? Colors.white24 : Colors.grey[300],
-                    valueColor: AlwaysStoppedAnimation<Color>(kLogoGreen),
-                    minHeight:
-                        isLandscape ? 3 : 4, // Тоньше в горизонтальном режиме
-                  ),
-                ),
-                // Контент текущего шага
-                _buildStep(_currentStep),
-                // Фиксированная нижняя панель навигации - теперь часть скролла
-                Container(
-                  color:
-                      isDark
-                          ? const Color(0xFF181A20)
-                          : const Color(0xFFF7F8FA),
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: isLandscape ? 12.0 : 16.0,
-                      vertical:
-                          isLandscape
-                              ? 8.0
-                              : 16.0, // Меньше в горизонтальном режиме
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        IconButton(
-                          icon: Icon(
-                            isFirstStep
-                                ? Icons.cancel_outlined
-                                : Icons.arrow_back_ios,
-                            color: isFirstStep ? Colors.redAccent : kLogoGreen,
-                            size:
-                                isLandscape
-                                    ? 24
-                                    : 28, // Меньше в горизонтальном режиме
-                          ),
-                          tooltip: isFirstStep ? 'Отменить' : 'Назад',
-                          onPressed: _previousPage,
-                        ),
-                        Text(
-                          'Шаг ${_currentStep.index + 1} из ${FormStep.values.length}',
-                          style: TextStyle(
-                            color: isDark ? Colors.white70 : Colors.grey[600],
-                            fontSize:
-                                isLandscape
-                                    ? 12
-                                    : 14, // Меньше в горизонтальном режиме
-                          ),
-                        ),
-                        IconButton(
-                          icon: Icon(
-                            nextButtonIcon,
-                            color: kLogoGreen,
-                            size:
-                                isLandscape
-                                    ? 24
-                                    : 28, // Меньше в горизонтальном режиме
-                          ),
-                          tooltip: nextButtonText,
-                          onPressed: _nextPage,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ),
       ),
     );
   }
+}
+
+// Intent классы для обработки навигации с клавиатуры
+class _PreviousStepIntent extends Intent {
+  const _PreviousStepIntent();
+}
+
+class _NextStepIntent extends Intent {
+  const _NextStepIntent();
 }

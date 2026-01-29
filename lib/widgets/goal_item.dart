@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/goal.dart';
-
-const Color kLogoGreen = Color(0xFF2f855a);
+import '../styles/app_styles.dart';
 
 class GoalItem extends StatefulWidget {
   final Goal goal;
@@ -71,23 +70,29 @@ class _GoalItemState extends State<GoalItem> {
   }
 
   Widget _buildHighlightedText(String text, String? query) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    // Стиль для первого незавершенного шага
+    final baseFontSize =
+        widget.isFirst && !widget.goal.isCompleted ? 17.0 : 15.0;
+    final baseFontWeight =
+        widget.isFirst && !widget.goal.isCompleted
+            ? FontWeight.w600
+            : FontWeight.w500;
+
     if (query == null || query.isEmpty) {
       return Text(
         text,
-        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-          fontSize: widget.isFirst && !widget.goal.isCompleted ? 18 : 16,
-          fontWeight:
-              widget.isFirst && !widget.goal.isCompleted
-                  ? FontWeight.w600
-                  : FontWeight.normal,
+        style: TextStyle(
+          fontSize: baseFontSize,
+          fontWeight: baseFontWeight,
           decoration:
               widget.goal.isCompleted ? TextDecoration.lineThrough : null,
           color:
               widget.goal.isCompleted
-                  ? Theme.of(
-                    context,
-                  ).colorScheme.onSurface.withValues(alpha: 0.5)
-                  : Theme.of(context).textTheme.bodyLarge?.color,
+                  ? (isDark ? Colors.white38 : Colors.grey[400])
+                  : (isDark ? Colors.white70 : Colors.black87),
         ),
       );
     }
@@ -108,7 +113,7 @@ class _GoalItemState extends State<GoalItem> {
         TextSpan(
           text: text.substring(index, index + query.length),
           style: TextStyle(
-            backgroundColor: kLogoGreen.withValues(alpha: 0.3),
+            backgroundColor: AppColors.logoGreen.withValues(alpha: 0.3),
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -125,20 +130,15 @@ class _GoalItemState extends State<GoalItem> {
     return RichText(
       text: TextSpan(
         children: spans,
-        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-          fontSize: widget.isFirst && !widget.goal.isCompleted ? 18 : 16,
-          fontWeight:
-              widget.isFirst && !widget.goal.isCompleted
-                  ? FontWeight.w600
-                  : FontWeight.normal,
+        style: TextStyle(
+          fontSize: baseFontSize,
+          fontWeight: baseFontWeight,
           decoration:
               widget.goal.isCompleted ? TextDecoration.lineThrough : null,
           color:
               widget.goal.isCompleted
-                  ? Theme.of(
-                    context,
-                  ).colorScheme.onSurface.withValues(alpha: 0.5)
-                  : Theme.of(context).textTheme.bodyLarge?.color,
+                  ? (isDark ? Colors.white38 : Colors.grey[400])
+                  : (isDark ? Colors.white70 : Colors.black87),
         ),
       ),
     );
@@ -147,130 +147,159 @@ class _GoalItemState extends State<GoalItem> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Material(
-        elevation: widget.isFirst ? 6 : 4,
-        borderRadius: BorderRadius.circular(18),
-        shadowColor: Colors.black.withValues(alpha: 0.1),
-        child: Container(
-          decoration: BoxDecoration(
-            color: theme.cardTheme.color,
-            borderRadius: BorderRadius.circular(18),
-            border:
-                widget.isFirst && !widget.goal.isCompleted
-                    ? Border.all(color: theme.colorScheme.primary, width: 2)
-                    : null,
-          ),
-          padding: EdgeInsets.all(
-            widget.isFirst && !widget.goal.isCompleted ? 20 : 16,
-          ),
-          child: Row(
-            children: [
-              if (widget.isEditMode && !widget.isEditing)
-                ReorderableDragStartListener(
-                  index: widget.index,
-                  child: Container(
-                    margin: const EdgeInsets.only(left: 4, right: 12),
-                    padding: const EdgeInsets.all(4),
-                    child: Icon(Icons.reorder, color: kLogoGreen, size: 24),
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          // Левая зона: чекбокс + отступ для переключения
+          GestureDetector(
+            onTap: widget.isEditing ? null : () => widget.onToggleComplete(),
+            behavior: HitTestBehavior.opaque,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Checkbox(
+                  value: widget.goal.isCompleted,
+                  onChanged:
+                      widget.isEditMode && widget.isEditing
+                          ? null
+                          : (_) => widget.onToggleComplete(),
+                  activeColor:
+                      widget.goal.isCompleted
+                          ? AppColors.goalsScreen
+                          : AppColors.logoGreen,
+                  checkColor: theme.colorScheme.onPrimary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4),
                   ),
                 ),
-
-              Checkbox(
-                value: widget.goal.isCompleted,
-                onChanged:
-                    widget.isEditMode && widget.isEditing
-                        ? null
-                        : (_) => widget.onToggleComplete(),
-                activeColor: kLogoGreen,
-                checkColor: theme.colorScheme.onPrimary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-
-              const SizedBox(width: 12),
-
-              Expanded(
-                child:
-                    widget.isEditing
-                        ? TextField(
-                          controller: _editController,
-                          focusNode: _focusNode,
-                          style: theme.textTheme.bodyLarge,
-                          decoration: InputDecoration(
-                            border: theme.inputDecorationTheme.border,
-                            focusedBorder:
-                                theme.inputDecorationTheme.focusedBorder,
-                            fillColor: theme.inputDecorationTheme.fillColor,
-                            filled: theme.inputDecorationTheme.filled,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                          ),
-                          onSubmitted: (_) => _saveEdit(),
-                        )
-                        : _buildHighlightedText(
-                          widget.goal.text,
-                          widget.searchQuery,
-                        ),
-              ),
-
-              if (widget.isEditMode) ...[
-                const SizedBox(width: 8),
-                if (widget.isEditing) ...[
-                  IconButton(
-                    icon: Icon(Icons.check, color: theme.colorScheme.primary),
-                    onPressed: _saveEdit,
-                    constraints: const BoxConstraints(
-                      minWidth: 32,
-                      minHeight: 32,
-                    ),
-                    padding: EdgeInsets.zero,
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.close, color: theme.colorScheme.error),
-                    onPressed: widget.onCancelEdit,
-                    constraints: const BoxConstraints(
-                      minWidth: 32,
-                      minHeight: 32,
-                    ),
-                    padding: EdgeInsets.zero,
-                  ),
-                ] else ...[
-                  IconButton(
-                    icon: Icon(
-                      Icons.edit_outlined,
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                    ),
-                    onPressed: widget.onStartEdit,
-                    constraints: const BoxConstraints(
-                      minWidth: 32,
-                      minHeight: 32,
-                    ),
-                    padding: EdgeInsets.zero,
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    icon: Icon(
-                      Icons.delete_outline,
-                      color: theme.colorScheme.error,
-                    ),
-                    onPressed: () => _showDeleteConfirmation(context),
-                    constraints: const BoxConstraints(
-                      minWidth: 32,
-                      minHeight: 32,
-                    ),
-                    padding: EdgeInsets.zero,
-                  ),
-                ],
+                const SizedBox(width: 12),
               ],
-            ],
+            ),
           ),
-        ),
+
+          // Средняя зона: текст для перетаскивания
+          if (!widget.isEditing)
+            Expanded(
+              child: ReorderableDragStartListener(
+                index: widget.index,
+                child: _buildHighlightedText(
+                  widget.goal.text,
+                  widget.searchQuery,
+                ),
+              ),
+            )
+          else
+            Expanded(
+              child: TextField(
+                controller: _editController,
+                focusNode: _focusNode,
+                cursorColor: isDark ? Colors.white70 : Colors.black87,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: isDark ? Colors.white70 : Colors.black87,
+                ),
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: AppColors.logoGreen,
+                      width: 2,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: AppColors.logoGreen,
+                      width: 2,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: AppColors.logoGreen,
+                      width: 2,
+                    ),
+                  ),
+                  fillColor:
+                      isDark
+                          ? const Color(0xFF1A1A1A)
+                          : const Color(0xFFF5F5F5),
+                  filled: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                ),
+                onSubmitted: (_) => _saveEdit(),
+              ),
+            ),
+
+          if (widget.isEditing) ...[
+            const SizedBox(width: 8),
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.logoGreen,
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.check, color: Colors.white, size: 20),
+                onPressed: _saveEdit,
+                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                padding: EdgeInsets.zero,
+              ),
+            ),
+            const SizedBox(width: 4),
+            IconButton(
+              icon: Icon(Icons.close, color: theme.colorScheme.error, size: 20),
+              onPressed: widget.onCancelEdit,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              padding: EdgeInsets.zero,
+            ),
+          ] else ...[
+            // В режиме просмотра показываем меню действий
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                if (value == 'edit') {
+                  widget.onStartEdit();
+                } else if (value == 'delete') {
+                  _showDeleteConfirmation(context);
+                }
+              },
+              itemBuilder:
+                  (BuildContext context) => [
+                    const PopupMenuItem<String>(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit, size: 18),
+                          SizedBox(width: 8),
+                          Text('Редактировать'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem<String>(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete, size: 18, color: Colors.red),
+                          SizedBox(width: 8),
+                          Text('Удалить', style: TextStyle(color: Colors.red)),
+                        ],
+                      ),
+                    ),
+                  ],
+              icon: Icon(Icons.more_vert, color: Colors.grey[600], size: 20),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              elevation: 2,
+            ),
+          ],
+        ],
       ),
     );
   }

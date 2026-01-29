@@ -7,15 +7,15 @@
 
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:eight_logbook/main.dart';
+import 'package:logbook/main.dart';
 
 void main() {
   testWidgets('App starts and shows title', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const SoftSkillsLogbookApp());
+    await tester.pumpWidget(const LogbookApp());
 
     // Verify that our app shows the correct title.
-    expect(find.text('EightFaces: Soft Skills Engine'), findsOneWidget);
+    expect(find.text('Logbook'), findsOneWidget);
 
     // Verify that the empty state is shown initially
     expect(find.text('Пока нет записей'), findsOneWidget);

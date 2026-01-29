@@ -99,7 +99,7 @@ class DiaryProvider with ChangeNotifier {
     }
   }
 
-  Future<void> deleteEntry(int id) async {
+  Future<void> deleteEntry(String id) async {
     try {
       await _databaseService.deleteEntry(id);
       await loadEntries();

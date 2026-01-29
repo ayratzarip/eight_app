@@ -1,201 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:webview_flutter/webview_flutter.dart';
-import 'dart:io' show Platform;
+import '../styles/app_styles.dart';
 import 'home_screen.dart';
 import 'goals_screen.dart';
-
-class VideoPlayerScreen extends StatefulWidget {
-  final String videoUrl;
-  final String title;
-
-  const VideoPlayerScreen({
-    super.key,
-    required this.videoUrl,
-    required this.title,
-  });
-
-  @override
-  State<VideoPlayerScreen> createState() => _VideoPlayerScreenState();
-}
-
-class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
-  late WebViewController _controller;
-  bool _isLoading = true;
-  bool _hasError = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeController();
-  }
-
-  void _initializeController() {
-    _controller =
-        WebViewController()
-          ..setJavaScriptMode(JavaScriptMode.unrestricted)
-          ..setUserAgent(_getUserAgent())
-          ..enableZoom(false)
-          ..setNavigationDelegate(
-            NavigationDelegate(
-              onWebResourceError: (error) {
-                debugPrint('WebView error: ${error.description}');
-                if (mounted) {
-                  setState(() {
-                    _hasError = true;
-                    _isLoading = false;
-                  });
-                }
-              },
-              onPageStarted: (url) {
-                debugPrint('Page started loading: $url');
-                if (mounted) {
-                  setState(() {
-                    _isLoading = true;
-                    _hasError = false;
-                  });
-                }
-              },
-              onPageFinished: (url) {
-                debugPrint('Page finished loading: $url');
-                if (mounted) {
-                  setState(() {
-                    _isLoading = false;
-                  });
-                }
-              },
-            ),
-          )
-          ..loadRequest(Uri.parse(widget.videoUrl));
-  }
-
-  String? _getUserAgent() {
-    if (Platform.isIOS) {
-      return 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1';
-    } else {
-      // For Android and other platforms, returning null uses the WebView default User-Agent.
-      return null;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    const Color kLogoGreen = Color(0xFF2f855a);
-
-    return Scaffold(
-      backgroundColor:
-          isDark ? const Color(0xFF181A20) : const Color(0xFFF7F8FA),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Заголовок с кнопкой возврата
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 18, 24, 0),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: Icon(
-                      Icons.arrow_back_ios,
-                      size: 24,
-                      color: kLogoGreen,
-                    ),
-                    tooltip: 'Назад',
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  Expanded(
-                    child: Text(
-                      widget.title,
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black,
-                        letterSpacing: -1,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const SizedBox(width: 48), // Баланс для кнопки назад
-                ],
-              ),
-            ),
-            // Видео контент
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Stack(
-                    children: [
-                      WebViewWidget(controller: _controller),
-                      if (_isLoading)
-                        Container(
-                          color:
-                              isDark ? const Color(0xFF23242B) : Colors.white,
-                          child: const Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                CircularProgressIndicator(),
-                                SizedBox(height: 16),
-                                Text('Загрузка видео...'),
-                              ],
-                            ),
-                          ),
-                        ),
-                      if (_hasError)
-                        Container(
-                          color:
-                              isDark ? const Color(0xFF23242B) : Colors.white,
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.error_outline,
-                                  size: 48,
-                                  color: Colors.red,
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'Ошибка загрузки видео',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    color: isDark ? Colors.white : Colors.black,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Проверьте подключение к интернету',
-                                  style: TextStyle(
-                                    color:
-                                        isDark
-                                            ? Colors.white70
-                                            : Colors.grey[600],
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                ElevatedButton.icon(
-                                  onPressed: () {
-                                    _initializeController();
-                                  },
-                                  icon: const Icon(Icons.refresh),
-                                  label: const Text('Повторить'),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class InstructionsScreen extends StatefulWidget {
   const InstructionsScreen({super.key});
@@ -205,8 +11,6 @@ class InstructionsScreen extends StatefulWidget {
 }
 
 class _InstructionsScreenState extends State<InstructionsScreen> {
-  final String vimeoVideoUrl =
-      'https://player.vimeo.com/video/1041570908?h=5aaeb04e69&autoplay=0&loop=0&muted=0&title=1&portrait=0&byline=0&controls=1';
   int _selectedTab = 2; // 0 - Журнал, 1 - Цели, 2 - Инструкции
 
   void _onTabTapped(int index) {
@@ -231,7 +35,6 @@ class _InstructionsScreenState extends State<InstructionsScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    const Color kLogoGreen = Color(0xFF2f855a);
 
     return Scaffold(
       backgroundColor:
@@ -243,15 +46,7 @@ class _InstructionsScreenState extends State<InstructionsScreen> {
             // Крупный заголовок
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 18, 24, 0),
-              child: Text(
-                'Инструкция: журнал',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.black,
-                  letterSpacing: -1,
-                ),
-              ),
+              child: Text('Инструкции', style: theme.textTheme.headlineSmall),
             ),
             // Контент
             Expanded(
@@ -274,26 +69,16 @@ class _InstructionsScreenState extends State<InstructionsScreen> {
                     ),
                     child: Column(
                       children: [
-                        // Видео-инструкция
+                        // Как пользоваться приложением
                         _buildSectionItem(
                           context: context,
-                          title: 'Видео-инструкция',
+                          title: 'Как пользоваться приложением',
                           description:
-                              'Подробное объяснение того, как вести журнал самонаблюдения',
-                          icon: Icons.play_circle_outline,
+                              'Основные функции и возможности приложения Logbook',
+                          icon: Icons.phone_android,
+                          iconColor: AppColors.instructionsScreen,
                           isFirst: true,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder:
-                                    (context) => VideoPlayerScreen(
-                                      videoUrl: vimeoVideoUrl,
-                                      title: 'Видео-инструкция',
-                                    ),
-                              ),
-                            );
-                          },
+                          content: _buildHowToUseAppContent(context, isDark),
                         ),
                         _buildDivider(isDark),
                         // Как заполнять журнал
@@ -302,7 +87,8 @@ class _InstructionsScreenState extends State<InstructionsScreen> {
                           title: 'Как заполнять журнал',
                           description:
                               'Пошаговое руководство по заполнению журнала самонаблюдения',
-                          icon: Icons.edit_outlined,
+                          icon: Icons.book_outlined,
+                          iconColor: AppColors.journalScreen,
                           content: _buildHowToFillContent(context, isDark),
                         ),
                         _buildDivider(isDark),
@@ -313,13 +99,36 @@ class _InstructionsScreenState extends State<InstructionsScreen> {
                           description:
                               'Полезные советы для эффективного ведения журнала',
                           icon: Icons.lightbulb_outline,
+                          iconColor: AppColors.journalScreen,
                           content: _buildTipsContent(context, isDark),
+                        ),
+                        _buildDivider(isDark),
+                        // Как формировать шаги к цели
+                        _buildSectionItem(
+                          context: context,
+                          title: 'Как формировать шаги к цели',
+                          description:
+                              'Пошаговое руководство по созданию эффективных шагов к цели',
+                          icon: Icons.stairs_outlined,
+                          iconColor: AppColors.goalsScreen,
+                          content: _buildStepFormationContent(context, isDark),
+                        ),
+                        _buildDivider(isDark),
+                        // Советы и рекомендации по целям
+                        _buildSectionItem(
+                          context: context,
+                          title: 'Советы и рекомендации по целям',
+                          description:
+                              'Полезные советы для эффективного достижения целей',
+                          icon: Icons.lightbulb_outline,
+                          iconColor: AppColors.goalsScreen,
+                          content: _buildGoalsTipsContent(context, isDark),
                           isLast: true,
                         ),
                       ],
                     ),
                   ),
-                  // Информация о программе EightFaces
+                  // Первое предупреждение
                   Container(
                     margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                     decoration: BoxDecoration(
@@ -335,60 +144,65 @@ class _InstructionsScreenState extends State<InstructionsScreen> {
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(20),
-                      child: Column(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Заголовок с логотипом
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              // Компактный логотип
-                              Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.asset(
-                                    'assets/images/logo.png',
-                                    fit: BoxFit.cover,
-                                    errorBuilder:
-                                        (context, error, stackTrace) => Icon(
-                                          Icons.school,
-                                          color: kLogoGreen,
-                                          size: 24,
-                                        ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              // Заголовок
-                              Flexible(
-                                child: Text(
-                                  'EightFaces: \n Soft Skills Engine',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    color:
-                                        isDark ? Colors.white : Colors.black87,
-                                  ),
-                                  maxLines: 2,
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            ],
+                          Icon(
+                            Icons.delete_forever,
+                            color: Theme.of(context).colorScheme.error,
+                            size: 28,
                           ),
-                          const SizedBox(height: 16),
-                          // Описание
-                          Text(
-                            'Это приложение создано как часть онлайн-программы EightFaces: Soft Skills Engine. Подробнее о курсе — на сайте eightfaces.ru.',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: isDark ? Colors.white70 : Colors.grey[700],
-                              height: 1.5,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'Внимание! Удаление приложения приведет к безвозвратной потере всех записей, так как они хранятся только на устройстве.',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color:
+                                    isDark ? Colors.white54 : Colors.grey[600],
+                                height: 1.4,
+                              ),
                             ),
-                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // Второе предупреждение
+                  Container(
+                    margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF23242B) : Colors.white,
+                      borderRadius: BorderRadius.circular(22),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.06),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.health_and_safety,
+                            color: const Color(0xFFFFA000),
+                            size: 24,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'Это приложение является инструментом самопомощи и не заменяет профессиональную терапию или медицинское лечение.',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color:
+                                    isDark ? Colors.white54 : Colors.grey[600],
+                                height: 1.4,
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -403,14 +217,17 @@ class _InstructionsScreenState extends State<InstructionsScreen> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedTab,
         onTap: _onTabTapped,
-        selectedItemColor: kLogoGreen,
+        selectedItemColor: AppColors.instructionsScreen,
         unselectedItemColor: theme.iconTheme.color?.withValues(alpha: 0.6),
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.book_outlined),
             label: 'Журнал',
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.stairs), label: 'Цели'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.stairs_outlined),
+            label: 'Цели',
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.help_outline),
             label: 'Инструкции',
@@ -435,13 +252,13 @@ class _InstructionsScreenState extends State<InstructionsScreen> {
     required String title,
     required String description,
     required IconData icon,
+    required Color iconColor,
     bool isFirst = false,
     bool isLast = false,
     Widget? content,
     VoidCallback? onTap,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    const Color kLogoGreen = Color(0xFF2f855a);
 
     return ExpansionTile(
       tilePadding: EdgeInsets.fromLTRB(
@@ -451,7 +268,7 @@ class _InstructionsScreenState extends State<InstructionsScreen> {
         content == null ? (isLast ? 16 : 8) : 0,
       ),
       childrenPadding: EdgeInsets.fromLTRB(16, 0, 16, isLast ? 16 : 12),
-      leading: Icon(icon, color: kLogoGreen, size: 24),
+      leading: Icon(icon, color: iconColor, size: 24),
       title: Text(
         title,
         style: TextStyle(
@@ -469,6 +286,67 @@ class _InstructionsScreenState extends State<InstructionsScreen> {
       ),
       onExpansionChanged: onTap != null ? (_) => onTap() : null,
       children: content != null ? [content] : [],
+    );
+  }
+
+  Widget _buildHowToUseAppContent(BuildContext context, bool isDark) {
+    final instructions = [
+      'I. Создание новых записей',
+      '• На экране "Журнал" нажмите кнопку "+ Новая запись" в правом нижнем углу;',
+      '• Заполните все шаги формы по порядку;',
+      '• На каждом шаге вы можете вернуться назад или закрыть форму;',
+      '• После заполнения всех полей нажмите "Сохранить".',
+
+      'II. Редактирование записей',
+      '• На экране "Журнал" нажмите на карточку записи для просмотра;',
+      '• В детальном просмотре нажмите иконку редактирования (карандаш) или выберите "Редактировать" в меню (три точки);',
+      '• Внесите необходимые изменения;',
+      '• Сохраните изменения кнопкой "Сохранить".',
+
+      'III. Работа с шагами к цели',
+      '• На экране "Шаги к цели" нажмите кнопку "+ Новый шаг" для добавления новой цели;',
+      '• Для редактирования шага нажмите на три точки в карточке и выберите "Редактировать";',
+      '• Для перемещения шагов: зажмите среднюю часть карточки и перетащите её в нужное место;',
+      '• Для отметки выполнения: нажмите на чекбокс слева от текста шага;',
+      '• Первый шаг в списке выделен жирным шрифтом — это ваш следующий шаг.',
+
+      'IV. Экспорт данных',
+      '• На экране "Журнал" нажмите кнопку "Экспорт CSV";',
+      '• Данные будут экспортированы в формате CSV;',
+      '• Вы сможете открыть файл в Excel, Google Sheets или другом редакторе таблиц;',
+      '• Экспорт включает все записи с датами, описаниями и всеми заполненными полями.',
+
+      'V. Копирование для AI',
+      '• На экране "Журнал" нажмите кнопку "Копировать для AI";',
+      '• Все ваши записи будут отформатированы и скопированы в буфер обмена;',
+      '• Вставьте текст в любой AI-ассистент для анализа;',
+      '• AI поможет выявить паттерны, дать рекомендации и ответить на вопросы о ваших записях.',
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children:
+          instructions.map((instruction) {
+            // Проверяем, является ли строка заголовком раздела (римские цифры)
+            final isMainSection = RegExp(r'^[IVX]+\.\s').hasMatch(instruction);
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: Text(
+                instruction,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight:
+                      isMainSection ? FontWeight.bold : FontWeight.normal,
+                  color:
+                      isMainSection
+                          ? (isDark ? Colors.white : Colors.black87)
+                          : (isDark ? Colors.white70 : Colors.grey[700]),
+                  height: 1.4,
+                ),
+              ),
+            );
+          }).toList(),
     );
   }
 
@@ -606,6 +484,98 @@ class _InstructionsScreenState extends State<InstructionsScreen> {
                   fontWeight: isSubHeader ? FontWeight.bold : FontWeight.normal,
                   color:
                       isSubHeader
+                          ? (isDark ? Colors.white : Colors.black87)
+                          : (isDark ? Colors.white70 : Colors.grey[700]),
+                  height: 1.4,
+                ),
+              ),
+            );
+          }).toList(),
+    );
+  }
+
+  Widget _buildStepFormationContent(BuildContext context, bool isDark) {
+    final principles = [
+      '1. Формируем мечту.',
+      '• Представьте, где вы хотите оказаться через 10–20 лет.',
+      '• Не ограничивайте себя. Это мечта, а не план.',
+      '• Проживите воображаемый день в этом будущем: работа, место, люди рядом.',
+
+      '2. Строим план от конца.',
+      '• От мечты — назад, шаг за шагом, пока не дойдёте до того, что реально достижимо через 1–1,5 года.',
+      '• Это и будет ваша цель на проект.',
+
+      '3. Формулируем цель.',
+      'Цель формулируется по правилу SMART.',
+      '• S — Specific (конкретная): цель должна быть чёткой.',
+      '• M — Measurable (измеримая): важно понимать, как измерить результат.',
+      '• A — Achievable (достижимая): цель должна быть реалистичной.',
+      '• R — Relevant (значимая): цель имеет смысл для вас.',
+      '• T — Time-bound (ограничена по времени): у цели есть срок.',
+      'Записываем цель на соответствующей странице нашего приложения.',
+
+      '4. Продумываем шаги к цели.',
+      '• Разбейте путь на мелкие, реалистичные действия.',
+      '• Слишком большой шаг = сложно. Слишком маленький = неэффективно.',
+
+      '5. Добавляем тренировочные шаги.',
+      '• Придумайте ситуации, где вы чувствуете лёгкую и сильную неловкость.',
+      '• Впишите как задания. Упорядочьте их от простого к сложному.',
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children:
+          principles.map((principle) {
+            // Проверяем, начинается ли строка с цифры и точки (заголовок пункта)
+            final isMainPoint = RegExp(r'^\d+\.\s').hasMatch(principle);
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: Text(
+                principle,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: isMainPoint ? FontWeight.bold : FontWeight.normal,
+                  color:
+                      isMainPoint
+                          ? (isDark ? Colors.white : Colors.black87)
+                          : (isDark ? Colors.white70 : Colors.grey[700]),
+                  height: 1.4,
+                ),
+              ),
+            );
+          }).toList(),
+    );
+  }
+
+  Widget _buildGoalsTipsContent(BuildContext context, bool isDark) {
+    final tips = [
+      'Первое правило:',
+      'Мы формируем положительную и конструктивную цель. Тревога и застенчивость становятся проблемами только в том случае, если они стоят на дороге к цели.',
+      'Второе правило:',
+      'План строится от конца, шаг за шагом двигаясь к сегодняшнему дню.',
+      'Третье правило:',
+      'Шаги должны быть равномерные и средние, чтобы не уставать и не спотыкаться.',
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children:
+          tips.map((tip) {
+            // Проверяем, является ли строка заголовком правила (заканчивается на "правило:")
+            final isRuleHeader = tip.endsWith('правило:');
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: Text(
+                tip,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight:
+                      isRuleHeader ? FontWeight.bold : FontWeight.normal,
+                  color:
+                      isRuleHeader
                           ? (isDark ? Colors.white : Colors.black87)
                           : (isDark ? Colors.white70 : Colors.grey[700]),
                   height: 1.4,

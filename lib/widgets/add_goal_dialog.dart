@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import '../styles/app_styles.dart';
 
-const Color kLogoGreen = Color(0xFF2f855a);
 const Color kAdviceBg = Color(0xFFe6f4ea);
 
 class AddGoalDialog extends StatefulWidget {
@@ -115,6 +115,7 @@ class _AddGoalDialogState extends State<AddGoalDialog> {
                                 ? 2
                                 : 3, // Меньше строк в горизонтальном режиме
                         minLines: 1,
+                        cursorColor: theme.textTheme.bodyLarge?.color,
                         style: theme.textTheme.bodyLarge,
                         decoration: InputDecoration(
                           hintText: 'Введите текст шага...',
@@ -145,7 +146,7 @@ class _AddGoalDialogState extends State<AddGoalDialog> {
                         decoration: BoxDecoration(
                           color: kAdviceBg,
                           border: Border.all(
-                            color: kLogoGreen.withValues(alpha: 0.3),
+                            color: AppColors.logoGreen.withValues(alpha: 0.3),
                           ),
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -153,7 +154,7 @@ class _AddGoalDialogState extends State<AddGoalDialog> {
                           children: [
                             Icon(
                               Icons.lightbulb_outline,
-                              color: kLogoGreen,
+                              color: AppColors.logoGreen,
                               size: isLandscape ? 18 : 20,
                             ),
                             SizedBox(
@@ -163,7 +164,7 @@ class _AddGoalDialogState extends State<AddGoalDialog> {
                               child: Text(
                                 'Совет: Формулируйте шаг конкретно и измеримо',
                                 style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: kLogoGreen,
+                                  color: AppColors.logoGreen,
                                   fontSize:
                                       isLandscape
                                           ? 11
@@ -186,7 +187,7 @@ class _AddGoalDialogState extends State<AddGoalDialog> {
                                     : () => Navigator.of(context).pop(),
                             icon: Icon(
                               Icons.close,
-                              color: Colors.redAccent,
+                              color: Theme.of(context).colorScheme.error,
                               size: isLandscape ? 20 : 24,
                             ),
                             tooltip: 'Отмена',
@@ -203,13 +204,13 @@ class _AddGoalDialogState extends State<AddGoalDialog> {
                                         strokeWidth: 2,
                                         valueColor:
                                             AlwaysStoppedAnimation<Color>(
-                                              kLogoGreen,
+                                              AppColors.logoGreen,
                                             ),
                                       ),
                                     )
                                     : Icon(
                                       Icons.check,
-                                      color: kLogoGreen,
+                                      color: AppColors.logoGreen,
                                       size: isLandscape ? 20 : 24,
                                     ),
                             tooltip: 'Добавить',

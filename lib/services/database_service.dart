@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 import '../models/diary_entry.dart';
 
 class DatabaseService {
@@ -25,15 +26,22 @@ class DatabaseService {
   }
 
   Future<Database> _initDatabase() async {
-    String path = join(await getDatabasesPath(), 'diary_entries.db');
-    return await openDatabase(path, version: 1, onCreate: _createDatabase);
+    String path = join(await getDatabasesPath(), 'logbook.db');
+    return await openDatabase(
+      path,
+      version: 3,
+      onCreate: _createDatabase,
+      onUpgrade: _upgradeDatabase,
+    );
   }
 
   Future<void> _createDatabase(Database db, int version) async {
+    // Таблица записей дневника
     await db.execute('''
       CREATE TABLE diary_entries(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id TEXT PRIMARY KEY,
         dateTime INTEGER NOT NULL,
+        dateMs INTEGER NOT NULL,
         situationDescription TEXT NOT NULL,
         attentionFocus TEXT NOT NULL,
         thoughts TEXT NOT NULL,
@@ -42,6 +50,109 @@ class DatabaseService {
         futureActions TEXT NOT NULL
       )
     ''');
+    
+    await db.execute('CREATE INDEX idx_dateMs ON diary_entries(dateMs)');
+    
+    // Таблица целей
+    await db.execute('''
+      CREATE TABLE goals(
+        id TEXT PRIMARY KEY,
+        text TEXT NOT NULL,
+        isCompleted INTEGER NOT NULL DEFAULT 0,
+        order_index INTEGER NOT NULL,
+        createdAt INTEGER NOT NULL,
+        updatedAt INTEGER NOT NULL
+      )
+    ''');
+    
+    await db.execute('CREATE INDEX idx_goals_order ON goals(order_index)');
+  }
+
+  Future<void> _upgradeDatabase(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // Миграция v1 -> v2: добавление поля dateMs
+      await db.execute('ALTER TABLE diary_entries ADD COLUMN dateMs INTEGER');
+      
+      // Заполняем dateMs из dateTime для существующих записей
+      final entries = await db.query('diary_entries');
+      for (var entry in entries) {
+        await db.update(
+          'diary_entries',
+          {'dateMs': entry['dateTime']},
+          where: 'id = ?',
+          whereArgs: [entry['id']],
+        );
+      }
+    }
+    
+    if (oldVersion < 3) {
+      // Миграция v2 -> v3: изменение типа id с INTEGER на TEXT (UUID)
+      // Создаем новую таблицу с правильной структурой
+      await db.execute('''
+        CREATE TABLE diary_entries_new(
+          id TEXT PRIMARY KEY,
+          dateTime INTEGER NOT NULL,
+          dateMs INTEGER NOT NULL,
+          situationDescription TEXT NOT NULL,
+          attentionFocus TEXT NOT NULL,
+          thoughts TEXT NOT NULL,
+          bodySensations TEXT NOT NULL,
+          actions TEXT NOT NULL,
+          futureActions TEXT NOT NULL
+        )
+      ''');
+      
+      // Копируем данные с генерацией UUID для старых записей
+      final entries = await db.query('diary_entries');
+      for (var entry in entries) {
+        final newId = const Uuid().v4();
+        await db.insert('diary_entries_new', {
+          'id': newId,
+          'dateTime': entry['dateTime'],
+          'dateMs': entry['dateMs'] ?? entry['dateTime'],
+          'situationDescription': entry['situationDescription'],
+          'attentionFocus': entry['attentionFocus'],
+          'thoughts': entry['thoughts'],
+          'bodySensations': entry['bodySensations'],
+          'actions': entry['actions'],
+          'futureActions': entry['futureActions'],
+        });
+      }
+      
+      // Удаляем старую таблицу и переименовываем новую
+      await db.execute('DROP TABLE diary_entries');
+      await db.execute('ALTER TABLE diary_entries_new RENAME TO diary_entries');
+      
+      // Создаем индекс
+      await db.execute('CREATE INDEX idx_dateMs ON diary_entries(dateMs)');
+    }
+    
+    // Создаем таблицу goals, если её нет
+    final tables = await db.rawQuery(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='goals'"
+    );
+    if (tables.isEmpty) {
+      await db.execute('''
+        CREATE TABLE goals(
+          id TEXT PRIMARY KEY,
+          text TEXT NOT NULL,
+          isCompleted INTEGER NOT NULL DEFAULT 0,
+          order_index INTEGER NOT NULL,
+          createdAt INTEGER NOT NULL,
+          updatedAt INTEGER NOT NULL
+        )
+      ''');
+      await db.execute('CREATE INDEX idx_goals_order ON goals(order_index)');
+    }
+  }
+  
+  // Геттер для доступа к базе данных (для GoalsStorageService)
+  Future<Database> get database async {
+    if (isWeb) {
+      throw UnsupportedError('SQLite не поддерживается на веб-платформе');
+    }
+    await _initStorage();
+    return _database!;
   }
 
   // Веб-версия: работа с SharedPreferences
@@ -49,40 +160,28 @@ class DatabaseService {
     final entriesJson = _prefs!.getStringList('diary_entries') ?? [];
     return entriesJson.map((json) {
       final map = jsonDecode(json) as Map<String, dynamic>;
-      return DiaryEntry.fromMap(map);
+      return DiaryEntry.fromJson(map);
     }).toList();
   }
 
   Future<void> _saveEntriesToPrefs(List<DiaryEntry> entries) async {
     final entriesJson =
-        entries.map((entry) => jsonEncode(entry.toMap())).toList();
+        entries.map((entry) => jsonEncode(entry.toJson())).toList();
     await _prefs!.setStringList('diary_entries', entriesJson);
   }
 
-  Future<int> _getNextId() async {
-    if (isWeb) {
-      final entries = await _getEntriesFromPrefs();
-      if (entries.isEmpty) return 1;
-      return entries.map((e) => e.id ?? 0).reduce((a, b) => a > b ? a : b) + 1;
-    } else {
-      // Для SQLite ID генерируется автоматически
-      return 0;
-    }
-  }
-
-  Future<int> insertEntry(DiaryEntry entry) async {
+  Future<String> insertEntry(DiaryEntry entry) async {
     await _initStorage();
 
     if (isWeb) {
       final entries = await _getEntriesFromPrefs();
-      final newId = await _getNextId();
-      final newEntry = entry.copyWith(id: newId);
-      entries.add(newEntry);
+      entries.add(entry);
       await _saveEntriesToPrefs(entries);
-      return newId;
+      return entry.id;
     } else {
       final db = _database!;
-      return await db.insert('diary_entries', entry.toMap());
+      await db.insert('diary_entries', entry.toJson());
+      return entry.id;
     }
   }
 
@@ -91,22 +190,20 @@ class DatabaseService {
 
     if (isWeb) {
       final entries = await _getEntriesFromPrefs();
-      entries.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+      entries.sort((a, b) => b.dateMs.compareTo(a.dateMs));
       return entries;
     } else {
       final db = _database!;
       final List<Map<String, dynamic>> maps = await db.query(
         'diary_entries',
-        orderBy: 'dateTime DESC',
+        orderBy: 'dateMs DESC',
       );
 
-      return List.generate(maps.length, (i) {
-        return DiaryEntry.fromMap(maps[i]);
-      });
+      return maps.map((map) => DiaryEntry.fromJson(map)).toList();
     }
   }
 
-  Future<DiaryEntry?> getEntry(int id) async {
+  Future<DiaryEntry?> getEntry(String id) async {
     await _initStorage();
 
     if (isWeb) {
@@ -125,7 +222,7 @@ class DatabaseService {
       );
 
       if (maps.isNotEmpty) {
-        return DiaryEntry.fromMap(maps.first);
+        return DiaryEntry.fromJson(maps.first);
       }
       return null;
     }
@@ -147,14 +244,14 @@ class DatabaseService {
       final db = _database!;
       return await db.update(
         'diary_entries',
-        entry.toMap(),
+        entry.toJson(),
         where: 'id = ?',
         whereArgs: [entry.id],
       );
     }
   }
 
-  Future<int> deleteEntry(int id) async {
+  Future<int> deleteEntry(String id) async {
     await _initStorage();
 
     if (isWeb) {
@@ -170,16 +267,38 @@ class DatabaseService {
   }
 
   Future<List<DiaryEntry>> searchEntries(String query) async {
-    final allEntries = await getAllEntries();
-    final lowerQuery = query.toLowerCase();
+    await _initStorage();
 
-    return allEntries.where((entry) {
-      return entry.situationDescription.toLowerCase().contains(lowerQuery) ||
-          entry.attentionFocus.toLowerCase().contains(lowerQuery) ||
-          entry.thoughts.toLowerCase().contains(lowerQuery) ||
-          entry.bodySensations.toLowerCase().contains(lowerQuery) ||
-          entry.actions.toLowerCase().contains(lowerQuery) ||
-          entry.futureActions.toLowerCase().contains(lowerQuery);
-    }).toList();
+    if (isWeb) {
+      // Для веб используем фильтрацию в памяти
+      final allEntries = await getAllEntries();
+      final lowerQuery = query.toLowerCase();
+      return allEntries.where((entry) {
+        return entry.situationDescription.toLowerCase().contains(lowerQuery) ||
+            entry.attentionFocus.toLowerCase().contains(lowerQuery) ||
+            entry.thoughts.toLowerCase().contains(lowerQuery) ||
+            entry.bodySensations.toLowerCase().contains(lowerQuery) ||
+            entry.actions.toLowerCase().contains(lowerQuery) ||
+            entry.futureActions.toLowerCase().contains(lowerQuery);
+      }).toList();
+    } else {
+      // Для SQLite используем SQL LIKE для оптимизации
+      final db = _database!;
+      final searchPattern = '%$query%';
+      final List<Map<String, dynamic>> maps = await db.query(
+        'diary_entries',
+        where: '''
+          situationDescription LIKE ? OR 
+          attentionFocus LIKE ? OR 
+          thoughts LIKE ? OR 
+          bodySensations LIKE ? OR 
+          actions LIKE ? OR 
+          futureActions LIKE ?
+        ''',
+        whereArgs: List.filled(6, searchPattern),
+        orderBy: 'dateMs DESC',
+      );
+      return maps.map((map) => DiaryEntry.fromJson(map)).toList();
+    }
   }
 }

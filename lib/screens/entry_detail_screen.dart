@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../models/diary_entry.dart';
 import '../providers/diary_provider.dart';
+import '../styles/app_styles.dart';
 import 'add_edit_entry_screen.dart';
 
 class EntryDetailScreen extends StatelessWidget {
@@ -44,9 +45,6 @@ class EntryDetailScreen extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    // Цвет Tailwind text-green-700
-    const Color kLogoGreen = Color(0xFF2f855a);
-
     return Scaffold(
       backgroundColor:
           isDark ? const Color(0xFF181A20) : const Color(0xFFF7F8FA),
@@ -65,7 +63,7 @@ class EntryDetailScreen extends StatelessWidget {
                     icon: Icon(
                       Icons.arrow_back_ios,
                       size: 24,
-                      color: kLogoGreen,
+                      color: AppColors.logoGreen,
                     ),
                     tooltip: 'Назад',
                     onPressed: () => Navigator.pop(context),
@@ -74,12 +72,7 @@ class EntryDetailScreen extends StatelessWidget {
                   Expanded(
                     child: Text(
                       'Запись журнала',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black,
-                        letterSpacing: -1,
-                      ),
+                      style: theme.textTheme.headlineSmall,
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -87,11 +80,7 @@ class EntryDetailScreen extends StatelessWidget {
                   Row(
                     children: [
                       IconButton(
-                        icon: Icon(
-                          Icons.edit_outlined,
-                          size: 24,
-                          color: kLogoGreen,
-                        ),
+                        icon: const Icon(Icons.edit, size: 18),
                         tooltip: 'Редактировать',
                         onPressed: () {
                           Navigator.push(
@@ -104,10 +93,10 @@ class EntryDetailScreen extends StatelessWidget {
                         },
                       ),
                       IconButton(
-                        icon: Icon(
-                          Icons.delete_outline,
-                          size: 24,
-                          color: Colors.redAccent,
+                        icon: const Icon(
+                          Icons.delete,
+                          size: 18,
+                          color: Colors.red,
                         ),
                         tooltip: 'Удалить',
                         onPressed: () => _showDeleteDialog(context),
@@ -229,7 +218,6 @@ class EntryDetailScreen extends StatelessWidget {
     bool isLast = false,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    const Color kLogoGreen = Color(0xFF2f855a);
 
     return Padding(
       padding: EdgeInsets.fromLTRB(16, isFirst ? 16 : 12, 16, isLast ? 16 : 12),
@@ -238,7 +226,7 @@ class EntryDetailScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, color: kLogoGreen, size: 18),
+              Icon(icon, color: AppColors.logoGreen, size: 18),
               const SizedBox(width: 8),
               Text(
                 title,
@@ -278,7 +266,7 @@ class EntryDetailScreen extends StatelessWidget {
               ),
               TextButton(
                 onPressed: () {
-                  context.read<DiaryProvider>().deleteEntry(entry.id!);
+                  context.read<DiaryProvider>().deleteEntry(entry.id);
                   Navigator.pop(context); // Закрыть диалог
                   Navigator.pop(context); // Вернуться на главный экран
                   ScaffoldMessenger.of(context).showSnackBar(

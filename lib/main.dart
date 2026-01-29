@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'providers/diary_provider.dart';
 import 'providers/goals_provider.dart';
 import 'screens/home_screen.dart';
@@ -22,11 +23,11 @@ void main() async {
   // Инициализация локализации для русского языка
   await initializeDateFormatting('ru', null);
 
-  runApp(const SoftSkillsLogbookApp());
+  runApp(const LogbookApp());
 }
 
-class SoftSkillsLogbookApp extends StatelessWidget {
-  const SoftSkillsLogbookApp({super.key});
+class LogbookApp extends StatelessWidget {
+  const LogbookApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -39,40 +40,54 @@ class SoftSkillsLogbookApp extends StatelessWidget {
       child: Consumer<ThemeProvider>(
         builder:
             (context, themeProvider, _) => MaterialApp(
-              title: 'Soft Skills Engine: Logbook',
+              title: 'Logbook',
               debugShowCheckedModeBanner: false,
               themeMode: themeProvider.themeMode,
               theme: ThemeData(
                 useMaterial3: true,
-                fontFamily:
-                    'Nunito', // Современный шрифт, можно заменить на Inter/Roboto
-                colorScheme: ColorScheme(
-                  brightness: Brightness.light,
-                  primary: const Color(
-                    0xFF3A5BA0,
-                  ), // глубокий синий из логотипа
-                  onPrimary: Colors.white,
-                  secondary: const Color(0xFF6EC6F5), // светло-голубой акцент
-                  onSecondary: Colors.white,
-                  error: Colors.red,
-                  onError: Colors.white,
-                  surface: Colors.white,
-                  onSurface: const Color(0xFF222B45),
+                brightness: Brightness.light,
+                scaffoldBackgroundColor: LightModeColors.background,
+                colorScheme: const ColorScheme.light(
+                  primary: LightModeColors.primary,
+                  onPrimary: LightModeColors.onPrimary,
+                  secondary: LightModeColors.primary,
+                  onSecondary: LightModeColors.onPrimary,
+                  secondaryContainer: Color(0xFFE5E5EA),
+                  onSecondaryContainer: LightModeColors.textPrimary,
+                  surface: LightModeColors.surface,
+                  onSurface: LightModeColors.textPrimary,
+                  onSurfaceVariant: LightModeColors.textMuted,
+                  surfaceContainerHighest: Color(0xFFE5E5EA),
+                  outline: LightModeColors.border,
                 ),
-                scaffoldBackgroundColor: const Color(0xFFF6F8FB),
+                textTheme: _buildTextTheme(Brightness.light),
                 appBarTheme: const AppBarTheme(
                   backgroundColor: Colors.transparent,
                   elevation: 0,
+                  scrolledUnderElevation: 0,
                   centerTitle: true,
-                  foregroundColor: Color(0xFF222B45),
-                  titleTextStyle: TextStyle(
-                    fontFamily: 'Nunito',
-                    fontWeight: FontWeight.bold,
-                    fontSize: 22,
-                    color: Color(0xFF222B45),
-                    letterSpacing: 0.5,
+                ),
+                filledButtonTheme: FilledButtonThemeData(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: LightModeColors.primary,
+                    foregroundColor: LightModeColors.onPrimary,
                   ),
-                  iconTheme: IconThemeData(color: Color(0xFF3A5BA0)),
+                ),
+                inputDecorationTheme: InputDecorationTheme(
+                  filled: true,
+                  fillColor: LightModeColors.inputField,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: LightModeColors.border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(
+                        color: LightModeColors.primary, width: 2),
+                  ),
                 ),
                 cardTheme: CardTheme(
                   elevation: 4,
@@ -83,100 +98,62 @@ class SoftSkillsLogbookApp extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(18),
                   ),
-                  color: Colors.white,
+                  color: LightModeColors.surface,
                   shadowColor: Colors.black12,
                 ),
                 floatingActionButtonTheme: const FloatingActionButtonThemeData(
-                  backgroundColor: Color(0xFF3A5BA0),
+                  backgroundColor: LightModeColors.iconColor,
                   foregroundColor: Colors.white,
                   elevation: 6,
                   shape: StadiumBorder(),
-                ),
-                inputDecorationTheme: InputDecorationTheme(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(
-                      color: Color(0xFF3A5BA0),
-                      width: 2,
-                    ),
-                  ),
-                  fillColor: Colors.white,
-                  filled: true,
-                  hintStyle: const TextStyle(color: Color(0xFFB0B8C1)),
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: 16,
-                    horizontal: 16,
-                  ),
-                ),
-                textTheme: const TextTheme(
-                  titleLarge: TextStyle(
-                    fontFamily: 'Nunito',
-                    fontWeight: FontWeight.bold,
-                    fontSize: 22,
-                    color: Color(0xFF172554),
-                  ),
-                  headlineSmall: TextStyle(
-                    fontFamily: 'Nunito',
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                    color: Color(0xFF172554),
-                  ),
-                  titleMedium: TextStyle(
-                    fontFamily: 'Nunito',
-                    fontWeight: FontWeight.w600,
-                    fontSize: 18,
-                    color: Color(0xFF172554),
-                  ),
-                  bodyLarge: TextStyle(
-                    fontFamily: 'Nunito',
-                    fontSize: 16,
-                    color: Color(0xFF222B45),
-                  ),
-                  bodyMedium: TextStyle(
-                    fontFamily: 'Nunito',
-                    fontSize: 15,
-                    color: Color(0xFF3A5BA0),
-                  ),
-                  labelLarge: TextStyle(
-                    fontFamily: 'Nunito',
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                    color: Color(0xFF3A5BA0),
-                  ),
                 ),
                 extensions: <ThemeExtension<dynamic>>[const CustomColors()],
               ),
               darkTheme: ThemeData(
                 useMaterial3: true,
-                fontFamily: 'Nunito',
-                colorScheme: ColorScheme(
-                  brightness: Brightness.dark,
-                  primary: const Color(0xFF6EC6F5),
-                  onPrimary: Colors.black,
-                  secondary: const Color(0xFF3A5BA0),
-                  onSecondary: Colors.white,
-                  error: Colors.red[400]!,
-                  onError: Colors.black,
-                  surface: const Color(0xFF232A3B),
-                  onSurface: Colors.white,
+                brightness: Brightness.dark,
+                scaffoldBackgroundColor: DarkModeColors.background,
+                colorScheme: const ColorScheme.dark(
+                  primary: DarkModeColors.primary,
+                  onPrimary: DarkModeColors.onPrimary,
+                  secondary: DarkModeColors.primary,
+                  onSecondary: DarkModeColors.onPrimary,
+                  secondaryContainer: Color(0xFF2C2C2E),
+                  onSecondaryContainer: DarkModeColors.textPrimary,
+                  surface: DarkModeColors.surface,
+                  onSurface: DarkModeColors.textPrimary,
+                  onSurfaceVariant: DarkModeColors.textMuted,
+                  surfaceContainerHighest: Color(0xFF2C2C2E),
+                  outline: DarkModeColors.border,
                 ),
-                scaffoldBackgroundColor: const Color(0xFF181C24),
+                textTheme: _buildTextTheme(Brightness.dark),
                 appBarTheme: const AppBarTheme(
                   backgroundColor: Colors.transparent,
                   elevation: 0,
+                  scrolledUnderElevation: 0,
                   centerTitle: true,
-                  foregroundColor: Colors.white,
-                  titleTextStyle: TextStyle(
-                    fontFamily: 'Nunito',
-                    fontWeight: FontWeight.bold,
-                    fontSize: 22,
-                    color: Colors.white,
-                    letterSpacing: 0.5,
+                ),
+                filledButtonTheme: FilledButtonThemeData(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: DarkModeColors.primary,
+                    foregroundColor: DarkModeColors.onPrimary,
                   ),
-                  iconTheme: IconThemeData(color: Color(0xFF6EC6F5)),
+                ),
+                inputDecorationTheme: InputDecorationTheme(
+                  filled: true,
+                  fillColor: DarkModeColors.inputField,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: DarkModeColors.border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(
+                        color: DarkModeColors.primary, width: 2),
+                  ),
                 ),
                 cardTheme: CardTheme(
                   elevation: 4,
@@ -187,69 +164,14 @@ class SoftSkillsLogbookApp extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(18),
                   ),
-                  color: const Color(0xFF232A3B),
+                  color: DarkModeColors.surface,
                   shadowColor: Colors.black54,
                 ),
                 floatingActionButtonTheme: const FloatingActionButtonThemeData(
-                  backgroundColor: Color(0xFF6EC6F5),
-                  foregroundColor: Colors.black,
+                  backgroundColor: DarkModeColors.iconColor,
+                  foregroundColor: Colors.white,
                   elevation: 6,
                   shape: StadiumBorder(),
-                ),
-                inputDecorationTheme: InputDecorationTheme(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(
-                      color: Color(0xFF6EC6F5),
-                      width: 2,
-                    ),
-                  ),
-                  fillColor: const Color(0xFF232A3B),
-                  filled: true,
-                  hintStyle: const TextStyle(color: Color(0xFFB0B8C1)),
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: 16,
-                    horizontal: 16,
-                  ),
-                ),
-                textTheme: const TextTheme(
-                  titleLarge: TextStyle(
-                    fontFamily: 'Nunito',
-                    fontWeight: FontWeight.bold,
-                    fontSize: 22,
-                    color: Color(0xFFDBEAFE),
-                  ),
-                  headlineSmall: TextStyle(
-                    fontFamily: 'Nunito',
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                    color: Color(0xFFDBEAFE),
-                  ),
-                  titleMedium: TextStyle(
-                    fontFamily: 'Nunito',
-                    fontWeight: FontWeight.w600,
-                    fontSize: 18,
-                    color: Color(0xFFDBEAFE),
-                  ),
-                  bodyLarge: TextStyle(
-                    fontFamily: 'Nunito',
-                    fontSize: 16,
-                    color: Colors.white,
-                  ),
-                  bodyMedium: TextStyle(
-                    fontFamily: 'Nunito',
-                    fontSize: 15,
-                    color: Color(0xFF6EC6F5),
-                  ),
-                  labelLarge: TextStyle(
-                    fontFamily: 'Nunito',
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                    color: Color(0xFF6EC6F5),
-                  ),
                 ),
                 extensions: <ThemeExtension<dynamic>>[const CustomColors()],
               ),
@@ -260,20 +182,126 @@ class SoftSkillsLogbookApp extends StatelessWidget {
   }
 }
 
+// Цветовая палитра для светлой темы
+class LightModeColors {
+  // Фон 90% светлоты
+  static const background = Color(0xFFE6E6E6);
+  // Карточки 95% светлоты
+  static const surface = Color(0xFFF2F2F2);
+
+  // Текст основной 5% светлоты
+  static const textPrimary = Color(0xFF0D0D0D);
+  // Текст второстепенный 30% светлоты
+  static const textMuted = Color(0xFF4D4D4D);
+
+  // Кнопки внутри карточек 100% (белый)
+  static const primary = Color(0xFFFFFFFF);
+  static const onPrimary = Color(0xFF0D0D0D);
+
+  // Поля для ввода 100% (белый)
+  static const inputField = Color(0xFFFFFFFF);
+
+  // Цвет текста кнопок 70% светлоты
+  static const buttonText = Color(0xFFB3B3B3);
+
+  // Цвет фона вторичных кнопок 95% светлоты
+  static const secondaryButtonBackground = Color(0xFFF2F2F2);
+  // Цвет текста вторичных кнопок 30% светлоты
+  static const secondaryButtonText = Color(0xFF4D4D4D);
+
+  // Цвет иконок и индикаторов
+  static const iconColor = Color(0xFF2b67dc);
+
+  static const border = Color(0xFFE5E5EA);
+}
+
+// Цветовая палитра для темной темы
+class DarkModeColors {
+  // Фон 10% светлоты
+  static const background = Color(0xFF1A1A1A);
+  // Карточки 5% светлоты
+  static const surface = Color(0xFF0D0D0D);
+
+  // Текст основной 95% светлоты
+  static const textPrimary = Color(0xFFF2F2F2);
+  // Текст второстепенный 70% светлоты
+  static const textMuted = Color(0xFFB3B3B3);
+
+  // Кнопки внутри карточек 0% (черный)
+  static const primary = Color(0xFF000000);
+  static const onPrimary = Color(0xFFF2F2F2);
+
+  // Поля для ввода 0% (черный)
+  static const inputField = Color(0xFF000000);
+
+  // Цвет текста кнопок 30% светлоты
+  static const buttonText = Color(0xFF4D4D4D);
+
+  // Цвет фона вторичных кнопок 5% светлоты
+  static const secondaryButtonBackground = Color(0xFF0D0D0D);
+  // Цвет текста вторичных кнопок 70% светлоты
+  static const secondaryButtonText = Color(0xFFB3B3B3);
+
+  // Цвет иконок и индикаторов
+  static const iconColor = Color(0xFF2b67dc);
+
+  static const border = Color(0xFF2C2C2E);
+}
+
+// Функция для построения типографики с Google Fonts Inter
+TextTheme _buildTextTheme(Brightness brightness) {
+  final isDark = brightness == Brightness.dark;
+  final primaryColor =
+      isDark ? DarkModeColors.textPrimary : LightModeColors.textPrimary;
+
+  return TextTheme(
+    // Display стили
+    displayLarge: GoogleFonts.inter(
+        fontSize: 57, fontWeight: FontWeight.bold, color: primaryColor),
+    displayMedium: GoogleFonts.inter(
+        fontSize: 45, fontWeight: FontWeight.bold, color: primaryColor),
+    displaySmall: GoogleFonts.inter(
+        fontSize: 36, fontWeight: FontWeight.bold, color: primaryColor),
+
+    // Headline стили (с отрицательным letterSpacing)
+    headlineLarge: GoogleFonts.inter(
+        fontSize: 32,
+        fontWeight: FontWeight.w800,
+        color: primaryColor,
+        letterSpacing: -0.5),
+    headlineMedium: GoogleFonts.inter(
+        fontSize: 28,
+        fontWeight: FontWeight.w800,
+        color: primaryColor,
+        letterSpacing: -0.5),
+    headlineSmall: GoogleFonts.inter(
+        fontSize: 24,
+        fontWeight: FontWeight.w700,
+        color: primaryColor,
+        letterSpacing: -0.5),
+
+    // Title стили
+    titleLarge: GoogleFonts.inter(
+        fontSize: 22, fontWeight: FontWeight.w700, color: primaryColor),
+    titleMedium: GoogleFonts.inter(
+        fontSize: 16, fontWeight: FontWeight.w600, color: primaryColor),
+    titleSmall: GoogleFonts.inter(
+        fontSize: 14, fontWeight: FontWeight.w600, color: primaryColor),
+
+    // Body стили
+    bodyLarge: GoogleFonts.inter(
+        fontSize: 16, fontWeight: FontWeight.w400, color: primaryColor),
+    bodyMedium: GoogleFonts.inter(
+        fontSize: 14, fontWeight: FontWeight.w400, color: primaryColor),
+    bodySmall: GoogleFonts.inter(
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        color: isDark ? DarkModeColors.textMuted : LightModeColors.textMuted),
+  );
+}
+
 class CustomColors extends ThemeExtension<CustomColors> {
   const CustomColors();
-
-  // Светлая тема
-  static const lightGradientStart = Color(0xFFF2F2F7);
-  static const lightGradientEnd = Color(0xFFE5E5EA);
-  static const lightCard = Colors.white;
-  static const lightText = Color(0xFF1C1C1E);
-
-  // Тёмная тема
-  static const darkGradientStart = Color(0xFF1C1C1E);
-  static const darkGradientEnd = Color(0xFF2C2C2E);
-  static const darkCard = Colors.black;
-  static const darkText = Colors.white;
 
   @override
   CustomColors copyWith() => this;

@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/goals_provider.dart';
 import '../models/goal.dart';
+import '../styles/app_styles.dart';
 import '../widgets/goal_item.dart';
 import '../widgets/add_goal_dialog.dart';
-import 'goals_instructions_screen.dart';
+import 'instructions_screen.dart';
 import 'home_screen.dart';
 
 class GoalsScreen extends StatefulWidget {
@@ -15,7 +16,7 @@ class GoalsScreen extends StatefulWidget {
 }
 
 class _GoalsScreenState extends State<GoalsScreen> {
-  bool _isEditMode = false;
+  final bool _isEditMode = false;
   String? _editingGoalId;
   int _selectedTab = 1; // 0 - Журнал, 1 - Цели, 2 - Профиль
 
@@ -66,13 +67,6 @@ class _GoalsScreenState extends State<GoalsScreen> {
     );
   }
 
-  void _toggleEditMode() {
-    setState(() {
-      _isEditMode = !_isEditMode;
-      _editingGoalId = null;
-    });
-  }
-
   void _startEditGoal(String goalId) {
     setState(() {
       _editingGoalId = goalId;
@@ -117,9 +111,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
     } else if (index == 2) {
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => const GoalsInstructionsScreen(),
-        ),
+        MaterialPageRoute(builder: (context) => const InstructionsScreen()),
       );
     }
     // Для вкладки 'Цели' ничего не делаем
@@ -130,7 +122,6 @@ class _GoalsScreenState extends State<GoalsScreen> {
 
   Widget _buildGoalItem(Goal goal, bool isFirst, int index) {
     return GoalItem(
-      key: ValueKey(goal.id),
       goal: goal,
       isEditMode: _isEditMode,
       isEditing: _editingGoalId == goal.id,
@@ -151,331 +142,211 @@ class _GoalsScreenState extends State<GoalsScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    // Цвет Tailwind text-green-700
-    const Color kLogoGreen = Color(0xFF2f855a);
-
     return Scaffold(
       backgroundColor:
           isDark ? const Color(0xFF181A20) : const Color(0xFFF7F8FA),
       body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Stack(
           children: [
-            // Крупный заголовок и кнопка +
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 18, 24, 0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Крупный заголовок
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 18, 24, 0),
+                  child: Text(
                     'Шаги к цели',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : Colors.black,
-                      letterSpacing: -1,
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      IconButton(
-                        icon: Icon(
-                          _isEditMode ? Icons.done : Icons.edit_outlined,
-                          size: 24,
-                          color: kLogoGreen,
-                        ),
-                        tooltip:
-                            _isEditMode
-                                ? 'Завершить редактирование'
-                                : 'Редактировать',
-                        onPressed: _toggleEditMode,
-                      ),
-                      IconButton(
-                        icon: Icon(
-                          Icons.add_circle_outline,
-                          size: 24,
-                          color: kLogoGreen,
-                        ),
-                        tooltip: 'Добавить цель',
-                        onPressed: _showAddGoalDialog,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            // Блок аналитики
-            Consumer<GoalsProvider>(
-              builder: (context, provider, child) {
-                return Container(
-                  margin: const EdgeInsets.fromLTRB(24, 16, 24, 16),
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 12,
-                    horizontal: 16,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF242731) : Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      Expanded(
-                        child: _GoalAnalyticItem(
-                          icon: Icons.stairs,
-                          label: 'Всего шагов',
-                          value: provider.totalSteps.toString(),
-                          isDark: isDark,
-                          useHeaderColor: true,
-                        ),
-                      ),
-                      Expanded(
-                        child: _GoalAnalyticItem(
-                          icon: Icons.pending_actions,
-                          label: 'Ожидают действия',
-                          value: provider.pendingSteps.toString(),
-                          color: Colors.orange,
-                          isDark: isDark,
-                        ),
-                      ),
-                      Expanded(
-                        child: _GoalAnalyticItem(
-                          icon: Icons.check_circle_outline,
-                          label: 'Завершено',
-                          value:
-                              '${provider.completedPercentage.toStringAsFixed(1)}%',
-                          color: kLogoGreen,
-                          isDark: isDark,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-
-            // Строка поиска
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Поиск шагов',
-                  prefixIcon: const Icon(Icons.search),
-                  suffixIcon:
-                      _searchQuery.isNotEmpty
-                          ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _searchController.clear();
-                            },
-                          )
-                          : null,
-                  filled: true,
-                  fillColor: isDark ? const Color(0xFF23242B) : Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: 0,
-                    horizontal: 16,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
+                    style: theme.textTheme.headlineSmall,
                   ),
                 ),
-              ),
-            ),
-            // Список целей
-            Expanded(
-              child: Consumer<GoalsProvider>(
-                builder: (context, goalsProvider, child) {
-                  if (goalsProvider.isLoading) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (goalsProvider.error != null) {
-                    return Center(
-                      child: Text('Ошибка: ${goalsProvider.error!}'),
-                    );
-                  }
 
-                  final goals = _filterGoals(goalsProvider.sortedGoals);
-                  final uncompletedGoals =
-                      goals.where((g) => !g.isCompleted).toList();
-                  final completedGoals =
-                      goals.where((g) => g.isCompleted).toList();
-
-                  List<Widget> goalBlocks = [];
-
-                  // Если поиск активен и нет результатов
-                  if (_searchQuery.isNotEmpty && goals.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.search_off,
-                            size: 64,
-                            color: isDark ? Colors.white38 : Colors.grey[400],
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Шаги не найдены',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              color: isDark ? Colors.white70 : Colors.grey[600],
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Попробуйте изменить поисковый запрос',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: isDark ? Colors.white54 : Colors.grey[500],
-                            ),
-                          ),
-                        ],
+                // Строка поиска
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
+                  child: TextField(
+                    controller: _searchController,
+                    cursorColor: isDark ? Colors.white : Colors.black87,
+                    decoration: InputDecoration(
+                      hintText: 'Поиск шагов',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon:
+                          _searchQuery.isNotEmpty
+                              ? IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  _searchController.clear();
+                                },
+                              )
+                              : null,
+                      filled: true,
+                      fillColor:
+                          isDark ? const Color(0xFF23242B) : Colors.white,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 0,
+                        horizontal: 16,
                       ),
-                    );
-                  }
-
-                  // Если нет целей вообще (без поиска)
-                  if (_searchQuery.isEmpty && goals.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.stairs,
-                            size: 64,
-                            color: isDark ? Colors.white38 : Colors.grey[400],
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Нет шагов к цели',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              color: isDark ? Colors.white70 : Colors.grey[600],
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Нажмите + чтобы добавить первый шаг',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: isDark ? Colors.white54 : Colors.grey[500],
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none,
                       ),
-                    );
-                  }
+                    ),
+                  ),
+                ),
+                // Список целей
+                Expanded(
+                  child: Consumer<GoalsProvider>(
+                    builder: (context, goalsProvider, child) {
+                      if (goalsProvider.isLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (goalsProvider.error != null) {
+                        return Center(
+                          child: Text('Ошибка: ${goalsProvider.error!}'),
+                        );
+                      }
 
-                  // Если нет незавершенных целей, но есть завершенные
-                  if (_searchQuery.isEmpty &&
-                      uncompletedGoals.isEmpty &&
-                      completedGoals.isNotEmpty) {
-                    goalBlocks.add(
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
-                        child: Column(
-                          children: [
-                            Icon(
-                              Icons.check_circle_outline,
-                              size: 48,
-                              color: const Color(
-                                0xFF2f855a,
-                              ).withValues(alpha: 0.8),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'Все шаги завершены! 🎉',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: const Color(0xFF2f855a),
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Отличная работа! Нажмите + чтобы добавить новые цели',
-                              style: TextStyle(
-                                fontSize: 14,
+                      final goals = _filterGoals(goalsProvider.sortedGoals);
+                      final uncompletedGoals =
+                          goals.where((g) => !g.isCompleted).toList();
+                      final completedGoals =
+                          goals.where((g) => g.isCompleted).toList();
+
+                      List<Widget> goalBlocks = [];
+
+                      // Если поиск активен и нет результатов
+                      if (_searchQuery.isNotEmpty && goals.isEmpty) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.search_off,
+                                size: 64,
                                 color:
-                                    isDark ? Colors.white54 : Colors.grey[500],
+                                    isDark ? Colors.white38 : Colors.grey[400],
                               ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }
-
-                  // Незавершенные шаги (включая первый)
-                  if (uncompletedGoals.isNotEmpty) {
-                    goalBlocks.add(
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
-                        child: Text(
-                          _searchQuery.isNotEmpty
-                              ? 'Найденные шаги (${uncompletedGoals.length})'
-                              : 'Следующий шаг',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: isDark ? Colors.white : Colors.black,
+                              const SizedBox(height: 16),
+                              Text(
+                                'Шаги не найдены',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  color:
+                                      isDark
+                                          ? Colors.white70
+                                          : Colors.grey[600],
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Попробуйте изменить поисковый запрос',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color:
+                                      isDark
+                                          ? Colors.white54
+                                          : Colors.grey[500],
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ),
-                    );
-                    goalBlocks.add(
-                      Container(
-                        margin: const EdgeInsets.only(top: 8),
-                        decoration: BoxDecoration(
-                          color:
-                              isDark ? const Color(0xFF23242B) : Colors.white,
-                          borderRadius: BorderRadius.circular(22),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.06),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
+                        );
+                      }
+
+                      // Если нет незавершенных целей, но есть завершенные
+                      if (_searchQuery.isEmpty &&
+                          uncompletedGoals.isEmpty &&
+                          completedGoals.isNotEmpty) {
+                        goalBlocks.add(
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+                            child: Column(
+                              children: [
+                                Icon(
+                                  Icons.check_circle_outline,
+                                  size: 48,
+                                  color: const Color(
+                                    0xFF2f855a,
+                                  ).withValues(alpha: 0.8),
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  'Все шаги завершены! 🎉',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.logoGreen,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Отличная работа! Нажмите + чтобы добавить новые цели',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color:
+                                        isDark
+                                            ? Colors.white54
+                                            : Colors.grey[500],
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        child:
-                            _isEditMode
-                                ? ReorderableListView.builder(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: uncompletedGoals.length,
-                                  onReorder: _onReorderIncomplete,
-                                  itemBuilder: (context, index) {
-                                    final goal = uncompletedGoals[index];
-                                    return _buildGoalItem(
-                                      goal,
-                                      index == 0,
-                                      index,
-                                    );
-                                  },
-                                )
-                                : ListView.separated(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: uncompletedGoals.length,
-                                  separatorBuilder:
-                                      (_, __) => Divider(
+                          ),
+                        );
+                      }
+
+                      // Незавершенные шаги (включая первый)
+                      if (uncompletedGoals.isNotEmpty) {
+                        goalBlocks.add(
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+                            child: Text(
+                              _searchQuery.isNotEmpty
+                                  ? 'Найденные шаги (${uncompletedGoals.length})'
+                                  : 'Следующий шаг',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? Colors.white : Colors.black,
+                              ),
+                            ),
+                          ),
+                        );
+                        goalBlocks.add(
+                          Container(
+                            margin: const EdgeInsets.only(top: 8),
+                            decoration: BoxDecoration(
+                              color:
+                                  isDark
+                                      ? const Color(0xFF23242B)
+                                      : Colors.white,
+                              borderRadius: BorderRadius.circular(22),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.06),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: ReorderableListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              buildDefaultDragHandles: false,
+                              itemCount: uncompletedGoals.length,
+                              onReorder: _onReorderIncomplete,
+                              itemBuilder: (context, index) {
+                                final goal = uncompletedGoals[index];
+                                final isDark =
+                                    theme.brightness == Brightness.dark;
+                                return Column(
+                                  key: ValueKey(goal.id),
+                                  children: [
+                                    _buildGoalItem(goal, index == 0, index),
+                                    if (index < uncompletedGoals.length - 1)
+                                      Divider(
                                         height: 1,
                                         color:
                                             isDark
@@ -485,92 +356,113 @@ class _GoalsScreenState extends State<GoalsScreen> {
                                         indent: 16,
                                         endIndent: 16,
                                       ),
-                                  itemBuilder: (context, index) {
-                                    final goal = uncompletedGoals[index];
-                                    return _buildGoalItem(
-                                      goal,
-                                      index == 0,
-                                      index,
-                                    );
-                                  },
-                                ),
-                      ),
-                    );
-                  }
-
-                  // Завершённые шаги
-                  if (completedGoals.isNotEmpty) {
-                    goalBlocks.add(
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
-                        child: Text(
-                          _searchQuery.isNotEmpty
-                              ? 'Найденные завершённые шаги (${completedGoals.length})'
-                              : 'Завершённые шаги',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: isDark ? Colors.white : Colors.black,
-                          ),
-                        ),
-                      ),
-                    );
-                    goalBlocks.add(
-                      Container(
-                        margin: const EdgeInsets.only(top: 8),
-                        decoration: BoxDecoration(
-                          color:
-                              isDark ? const Color(0xFF23242B) : Colors.white,
-                          borderRadius: BorderRadius.circular(22),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.06),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
+                                  ],
+                                );
+                              },
                             ),
-                          ],
-                        ),
-                        child:
-                            _isEditMode
-                                ? ReorderableListView.builder(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: completedGoals.length,
-                                  onReorder: _onReorderCompleted,
-                                  itemBuilder: (context, index) {
-                                    final goal = completedGoals[index];
-                                    return _buildGoalItem(goal, false, index);
-                                  },
-                                )
-                                : ListView.separated(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: completedGoals.length,
-                                  separatorBuilder:
-                                      (_, __) => Divider(
-                                        height: 1,
-                                        color:
-                                            isDark
-                                                ? Colors.white12
-                                                : Colors.grey[200],
-                                        thickness: 1,
-                                        indent: 16,
-                                        endIndent: 16,
-                                      ),
-                                  itemBuilder: (context, index) {
-                                    final goal = completedGoals[index];
-                                    return _buildGoalItem(goal, false, index);
-                                  },
-                                ),
-                      ),
-                    );
-                  }
+                          ),
+                        );
+                      }
 
-                  return ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-                    children: goalBlocks,
-                  );
-                },
+                      // Завершённые шаги
+                      if (completedGoals.isNotEmpty) {
+                        goalBlocks.add(
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+                            child: Text(
+                              _searchQuery.isNotEmpty
+                                  ? 'Найденные завершённые шаги (${completedGoals.length})'
+                                  : 'Завершённые шаги',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? Colors.white : Colors.black,
+                              ),
+                            ),
+                          ),
+                        );
+                        goalBlocks.add(
+                          Container(
+                            margin: const EdgeInsets.only(top: 8),
+                            decoration: BoxDecoration(
+                              color:
+                                  isDark
+                                      ? const Color(0xFF23242B)
+                                      : Colors.white,
+                              borderRadius: BorderRadius.circular(22),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.06),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child:
+                                _isEditMode
+                                    ? ReorderableListView.builder(
+                                      shrinkWrap: true,
+                                      physics:
+                                          const NeverScrollableScrollPhysics(),
+                                      itemCount: completedGoals.length,
+                                      onReorder: _onReorderCompleted,
+                                      itemBuilder: (context, index) {
+                                        final goal = completedGoals[index];
+                                        return _buildGoalItem(
+                                          goal,
+                                          false,
+                                          index,
+                                        );
+                                      },
+                                    )
+                                    : ListView.separated(
+                                      shrinkWrap: true,
+                                      physics:
+                                          const NeverScrollableScrollPhysics(),
+                                      itemCount: completedGoals.length,
+                                      separatorBuilder:
+                                          (_, __) => Divider(
+                                            height: 1,
+                                            color:
+                                                isDark
+                                                    ? Colors.white12
+                                                    : Colors.grey[200],
+                                            thickness: 1,
+                                            indent: 16,
+                                            endIndent: 16,
+                                          ),
+                                      itemBuilder: (context, index) {
+                                        final goal = completedGoals[index];
+                                        return _buildGoalItem(
+                                          goal,
+                                          false,
+                                          index,
+                                        );
+                                      },
+                                    ),
+                          ),
+                        );
+                      }
+
+                      return ListView(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 92),
+                        children: goalBlocks,
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+
+            // Кнопка "+ Новый шаг" справа снизу (как "+ Новая запись" на Журнале)
+            Positioned(
+              right: 24,
+              bottom: 25,
+              child: FilledButton.icon(
+                onPressed: _showAddGoalDialog,
+                icon: const Icon(Icons.add),
+                label: const Text('Новый шаг'),
+                style: AppButtonStyles.floatingAction(context),
               ),
             ),
           ],
@@ -579,85 +471,23 @@ class _GoalsScreenState extends State<GoalsScreen> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedTab,
         onTap: _onTabTapped,
-        selectedItemColor: kLogoGreen,
+        selectedItemColor: AppColors.goalsScreen,
         unselectedItemColor: theme.iconTheme.color?.withValues(alpha: 0.6),
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.book_outlined),
             label: 'Журнал',
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.stairs), label: 'Цели'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.stairs_outlined),
+            label: 'Цели',
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.help_outline),
             label: 'Инструкции',
           ),
         ],
       ),
-      floatingActionButton: null, // Кнопка добавления теперь в AppBar
-    );
-  }
-}
-
-class _GoalAnalyticItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final bool isDark;
-  final Color? color;
-  final bool useHeaderColor;
-
-  const _GoalAnalyticItem({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.isDark,
-    this.color,
-    this.useHeaderColor = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final Color iconColor;
-    final Color valueColor;
-
-    if (useHeaderColor) {
-      // Используем цвет заголовков
-      iconColor = isDark ? Colors.white : Colors.black;
-      valueColor = isDark ? Colors.white : Colors.black;
-    } else {
-      // Используем переданный цвет или дефолтный зеленый
-      final activeColor = color ?? const Color(0xFF2f855a); // kLogoGreen
-      iconColor = activeColor;
-      valueColor = activeColor;
-    }
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 24, color: iconColor),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: isDark ? Colors.white70 : Colors.grey[600],
-          ),
-          textAlign: TextAlign.center,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: 2),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: valueColor,
-            height: 1.1,
-          ),
-          textAlign: TextAlign.center,
-        ),
-      ],
     );
   }
 }
