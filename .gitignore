@@ -43,3 +43,28 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Build outputs (all platforms)
+**/build/
+
+# Test coverage
+coverage/
+
+# IDE / editor (optional: uncomment if you don't want to share)
+# .cursor/
+
+# Local / generated data (e.g. shared design-system data)
+.shared/
+
+# Environment and secrets (if used later)
+.env
+.env.*
+
+# OS and tooling
+Thumbs.db
+*.hprof
+*.orig
+*.rej
+*.bak
+*~
+*.g.dart
