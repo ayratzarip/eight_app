@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/goals_provider.dart';
 import '../models/goal.dart';
@@ -87,11 +88,13 @@ class _GoalsScreenState extends State<GoalsScreen> {
   }
 
   void _onReorderIncomplete(int oldIndex, int newIndex) {
+    HapticFeedback.selectionClick();
     // Теперь все незавершенные цели в одном списке
     context.read<GoalsProvider>().reorderGoals(oldIndex, newIndex);
   }
 
   void _onReorderCompleted(int oldIndex, int newIndex) {
+    HapticFeedback.selectionClick();
     final allGoals = context.read<GoalsProvider>().sortedGoals;
     final uncompletedCount = allGoals.where((g) => !g.isCompleted).length;
 
@@ -262,20 +265,13 @@ class _GoalsScreenState extends State<GoalsScreen> {
                             padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
                             child: Column(
                               children: [
-                                Icon(
-                                  Icons.check_circle_outline,
-                                  size: 48,
-                                  color: const Color(
-                                    0xFF2f855a,
-                                  ).withValues(alpha: 0.8),
-                                ),
                                 const SizedBox(height: 12),
                                 Text(
-                                  'Все шаги завершены! 🎉',
+                                  'Все шаги завершены!',
                                   style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
-                                    color: AppColors.logoGreen,
+                                    color: AppColors.goalsScreen,
                                   ),
                                   textAlign: TextAlign.center,
                                 ),

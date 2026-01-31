@@ -6,8 +6,8 @@ class AppColors {
 
   // Цвета для экранов навигации
   static const Color journalScreen = Color(0xFF006B7D); // Журнал
-  static const Color goalsScreen = Color(0xFF00A8B5); // Шаги к цели
-  static const Color instructionsScreen = Color(0xFFFF8C69); // Информация
+  static const Color goalsScreen = Color(0xFF319795); // Шаги к цели
+  static const Color instructionsScreen = Color(0xFF3182ce); // Информация
 
   // Приватный конструктор, чтобы предотвратить создание экземпляров
   AppColors._();

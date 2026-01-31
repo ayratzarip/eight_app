@@ -88,7 +88,7 @@ class _InstructionsScreenState extends State<InstructionsScreen> {
                           description:
                               'Пошаговое руководство по заполнению журнала самонаблюдения',
                           icon: Icons.book_outlined,
-                          iconColor: AppColors.journalScreen,
+                          iconColor: AppColors.logoGreen,
                           content: _buildHowToFillContent(context, isDark),
                         ),
                         _buildDivider(isDark),
@@ -99,7 +99,7 @@ class _InstructionsScreenState extends State<InstructionsScreen> {
                           description:
                               'Полезные советы для эффективного ведения журнала',
                           icon: Icons.lightbulb_outline,
-                          iconColor: AppColors.journalScreen,
+                          iconColor: AppColors.logoGreen,
                           content: _buildTipsContent(context, isDark),
                         ),
                         _buildDivider(isDark),
@@ -357,10 +357,7 @@ class _InstructionsScreenState extends State<InstructionsScreen> {
 
       'II. Описание ситуации',
       '• записывайте кратко, ключевыми словами;',
-      '• не перегружайте деталями — запись должна быть понятной при повторном чтении;',
-      'Примеры:',
-      '– Первый день в Инфотехлаб. Вхожу в офис.',
-      '– Первое свидание с Ксюшей. В кафе Лакомка.',
+      '• не перегружайте деталями — запись должна быть понятной при повторном чтении.',
 
       'III. Фокус внимания',
       'Определите, на чём вы сконцентрированы:',
@@ -372,9 +369,6 @@ class _InstructionsScreenState extends State<InstructionsScreen> {
       '6. Внимание скачет.',
       '7. Внимание рассеянно.',
       'Первые три считаем желательными.',
-      'Примеры:',
-      '– Погружен в свои мысли.',
-      '– Внимание на смысле: внимательно слушал рассказ собеседника.',
 
       'IV. Мысли',
       'Если не «слышите» свои мысли, то можно:',
@@ -389,9 +383,6 @@ class _InstructionsScreenState extends State<InstructionsScreen> {
       '6. Перегрузка планированием.',
       '7. Мыслил «линейно».',
       'Последний считаем желательным.',
-      'Примеры:',
-      '– Перегрузка планированием: продумывал кому что сказать, пытался предугадать реакцию.',
-      '– Мыслил «линейно»: был поглощён её рассказом.',
 
       'V. Телесные ощущения',
       'Осознаём телесную реакцию на происходящее. Для этого:',
@@ -401,22 +392,14 @@ class _InstructionsScreenState extends State<InstructionsScreen> {
       '• обратите внимание на ощущения в животе и малом тазу;',
       '• просканируйте ощущения с кожи.',
       'Оцените интенсивность ощущений по шкале от 0 до 10.',
-      'Примеры:',
-      '– Напряжение во всём теле, сердце стучало, лицо покраснело, потливость, интенсивность 6.',
-      '– Лёгкое напряжение в плечах, тепло в груди и животе, ощущения приятные, интенсивность 3.',
 
       'VI. Ваши действия и результат',
       '• запишите действия кратко, но ясно;',
       '• отметьте: достигли ли желаемого результата или нет.',
-      'Примеры:',
-      '– Молча подошёл к столу и сел. Не получил желаемый результат.',
-      '– Слушал её, рассказал про свою собаку. Добился желаемого результата.',
 
       'VII. Что делать в будущем?',
       '• если не знаете — нажмите «Не знаю» и сохраните (можно обсудить позже);',
       '• если знаете — запишите, как будете действовать в следующий раз.',
-      'Пример:',
-      '– Знаю: при входе поздороваться, представиться, сфокусироваться на лицах новых коллег.',
     ];
 
     return Column(
@@ -425,9 +408,6 @@ class _InstructionsScreenState extends State<InstructionsScreen> {
           steps.map((step) {
             // Проверяем, является ли строка заголовком раздела (римские цифры)
             final isMainSection = RegExp(r'^[IVX]+\.\s').hasMatch(step);
-            // Проверяем, является ли строка "Примеры:" или "Пример:"
-            final isExampleHeader =
-                step.startsWith('Примеры:') || step.startsWith('Пример:');
 
             return Padding(
               padding: const EdgeInsets.only(bottom: 8.0),
@@ -436,11 +416,9 @@ class _InstructionsScreenState extends State<InstructionsScreen> {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight:
-                      (isMainSection || isExampleHeader)
-                          ? FontWeight.bold
-                          : FontWeight.normal,
+                      isMainSection ? FontWeight.bold : FontWeight.normal,
                   color:
-                      (isMainSection || isExampleHeader)
+                      isMainSection
                           ? (isDark ? Colors.white : Colors.black87)
                           : (isDark ? Colors.white70 : Colors.grey[700]),
                   height: 1.4,

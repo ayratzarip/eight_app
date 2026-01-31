@@ -1,6 +1,6 @@
 # Privacy Policy for Logbook
 
-**Last updated:** [January 27, 2026]
+**Last updated:** [January 31, 2026]
 
 ## Introduction
 Logbook ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how your personal information is collected, used, and disclosed by Logbook.

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/goal.dart';
 import '../styles/app_styles.dart';
 
@@ -113,7 +114,7 @@ class _GoalItemState extends State<GoalItem> {
         TextSpan(
           text: text.substring(index, index + query.length),
           style: TextStyle(
-            backgroundColor: AppColors.logoGreen.withValues(alpha: 0.3),
+            backgroundColor: AppColors.goalsScreen.withValues(alpha: 0.3),
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -155,7 +156,13 @@ class _GoalItemState extends State<GoalItem> {
         children: [
           // Левая зона: чекбокс + отступ для переключения
           GestureDetector(
-            onTap: widget.isEditing ? null : () => widget.onToggleComplete(),
+            onTap:
+                widget.isEditing
+                    ? null
+                    : () {
+                      HapticFeedback.selectionClick();
+                      widget.onToggleComplete();
+                    },
             behavior: HitTestBehavior.opaque,
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -165,11 +172,11 @@ class _GoalItemState extends State<GoalItem> {
                   onChanged:
                       widget.isEditMode && widget.isEditing
                           ? null
-                          : (_) => widget.onToggleComplete(),
-                  activeColor:
-                      widget.goal.isCompleted
-                          ? AppColors.goalsScreen
-                          : AppColors.logoGreen,
+                          : (_) {
+                            HapticFeedback.selectionClick();
+                            widget.onToggleComplete();
+                          },
+                  activeColor: AppColors.goalsScreen,
                   checkColor: theme.colorScheme.onPrimary,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(4),
@@ -206,21 +213,21 @@ class _GoalItemState extends State<GoalItem> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(
-                      color: AppColors.logoGreen,
+                      color: AppColors.goalsScreen,
                       width: 2,
                     ),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(
-                      color: AppColors.logoGreen,
+                      color: AppColors.goalsScreen,
                       width: 2,
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(
-                      color: AppColors.logoGreen,
+                      color: AppColors.goalsScreen,
                       width: 2,
                     ),
                   ),
@@ -242,7 +249,7 @@ class _GoalItemState extends State<GoalItem> {
             const SizedBox(width: 8),
             Container(
               decoration: BoxDecoration(
-                color: AppColors.logoGreen,
+                color: AppColors.goalsScreen,
                 shape: BoxShape.circle,
               ),
               child: IconButton(
@@ -275,7 +282,11 @@ class _GoalItemState extends State<GoalItem> {
                       value: 'edit',
                       child: Row(
                         children: [
-                          Icon(Icons.edit, size: 18),
+                          Icon(
+                            Icons.edit,
+                            size: 18,
+                            color: AppColors.goalsScreen,
+                          ),
                           SizedBox(width: 8),
                           Text('Редактировать'),
                         ],
@@ -305,51 +316,38 @@ class _GoalItemState extends State<GoalItem> {
   }
 
   void _showDeleteConfirmation(BuildContext context) {
-    final theme = Theme.of(context);
-
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18),
+      builder: (dialogContext) {
+        final isDark = Theme.of(dialogContext).brightness == Brightness.dark;
+        return AlertDialog(
+          title: const Text('Удалить цель?'),
+          content: Text(
+            'Вы уверены, что хотите удалить цель "${widget.goal.text}"?',
+            style: TextStyle(
+              color: isDark ? Colors.white70 : Colors.black87,
             ),
-            title: Text(
-              'Удалить цель?',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            content: Text(
-              'Вы уверены, что хотите удалить цель "${widget.goal.text}"?',
-              style: theme.textTheme.bodyLarge,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                style: TextButton.styleFrom(
-                  foregroundColor: theme.colorScheme.onSurface.withValues(
-                    alpha: 0.6,
-                  ),
-                ),
-                child: const Text('Отмена'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  widget.onDelete();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.colorScheme.error,
-                  foregroundColor: theme.colorScheme.onError,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text('Удалить'),
-              ),
-            ],
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              style: TextButton.styleFrom(
+                foregroundColor:
+                    isDark ? const Color(0xFFFFFFFF) : Colors.black87,
+              ),
+              child: const Text('Отмена'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                widget.onDelete();
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Удалить'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

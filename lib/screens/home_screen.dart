@@ -346,10 +346,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Expanded(
                         child: FilledButton.icon(
-                          onPressed: () => _exportToCsv(context),
+                          onPressed: () {
+                            HapticFeedback.selectionClick();
+                            _exportToCsv(context);
+                          },
                           icon: const Icon(
                             Icons.file_download_outlined,
-                            color: AppColors.journalScreen,
+                            color: AppColors.logoGreen,
                           ),
                           label: const Text('Экспорт CSV'),
                           style: AppButtonStyles.primaryAction(context),
@@ -359,6 +362,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Expanded(
                         child: FilledButton.icon(
                           onPressed: () async {
+                            HapticFeedback.selectionClick();
                             final provider = context.read<DiaryProvider>();
                             if (provider.isLoading) {
                               await provider.loadEntries();
@@ -392,7 +396,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           },
                           icon: const Icon(
                             Icons.content_copy,
-                            color: AppColors.journalScreen,
+                            color: AppColors.logoGreen,
                           ),
                           label: const Text('Копировать для AI'),
                           style: AppButtonStyles.primaryAction(context),
@@ -529,7 +533,7 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedTab,
         onTap: _onTabTapped,
-        selectedItemColor: AppColors.journalScreen,
+        selectedItemColor: AppColors.logoGreen,
         unselectedItemColor: theme.iconTheme.color?.withValues(alpha: 0.6),
         items: const [
           BottomNavigationBarItem(
@@ -645,6 +649,7 @@ class _HomeScreenState extends State<HomeScreen> {
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
+        final isDark = Theme.of(dialogContext).brightness == Brightness.dark;
         return AlertDialog(
           title: const Text('Удалить запись?'),
           content: const Text(
@@ -652,6 +657,10 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           actions: <Widget>[
             TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor:
+                    isDark ? const Color(0xFFFFFFFF) : Colors.black87,
+              ),
               child: const Text('Отмена'),
               onPressed: () {
                 Navigator.of(dialogContext).pop();

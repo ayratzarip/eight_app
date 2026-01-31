@@ -58,6 +58,7 @@ class _AddGoalDialogState extends State<AddGoalDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
 
@@ -65,7 +66,7 @@ class _AddGoalDialogState extends State<AddGoalDialog> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: Container(
         constraints: BoxConstraints(
-          maxWidth: isLandscape ? 500 : 320,
+          maxWidth: isLandscape ? 560 : 420,
           maxHeight:
               MediaQuery.of(context).size.height * (isLandscape ? 0.8 : 0.6),
         ),
@@ -119,7 +120,9 @@ class _AddGoalDialogState extends State<AddGoalDialog> {
                         style: theme.textTheme.bodyLarge,
                         decoration: InputDecoration(
                           hintText: 'Введите текст шага...',
-                          hintStyle: theme.inputDecorationTheme.hintStyle,
+                          hintStyle: TextStyle(
+                            color: isDark ? Colors.white38 : Colors.grey[400],
+                          ),
                           border: theme.inputDecorationTheme.border,
                           focusedBorder:
                               theme.inputDecorationTheme.focusedBorder,
@@ -146,7 +149,7 @@ class _AddGoalDialogState extends State<AddGoalDialog> {
                         decoration: BoxDecoration(
                           color: kAdviceBg,
                           border: Border.all(
-                            color: AppColors.logoGreen.withValues(alpha: 0.3),
+                            color: AppColors.goalsScreen.withValues(alpha: 0.3),
                           ),
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -154,7 +157,7 @@ class _AddGoalDialogState extends State<AddGoalDialog> {
                           children: [
                             Icon(
                               Icons.lightbulb_outline,
-                              color: AppColors.logoGreen,
+                              color: AppColors.goalsScreen,
                               size: isLandscape ? 18 : 20,
                             ),
                             SizedBox(
@@ -164,7 +167,7 @@ class _AddGoalDialogState extends State<AddGoalDialog> {
                               child: Text(
                                 'Совет: Формулируйте шаг конкретно и измеримо',
                                 style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: AppColors.logoGreen,
+                                  color: AppColors.goalsScreen,
                                   fontSize:
                                       isLandscape
                                           ? 11
@@ -204,13 +207,13 @@ class _AddGoalDialogState extends State<AddGoalDialog> {
                                         strokeWidth: 2,
                                         valueColor:
                                             AlwaysStoppedAnimation<Color>(
-                                              AppColors.logoGreen,
+                                              AppColors.goalsScreen,
                                             ),
                                       ),
                                     )
                                     : Icon(
                                       Icons.check,
-                                      color: AppColors.logoGreen,
+                                      color: AppColors.goalsScreen,
                                       size: isLandscape ? 20 : 24,
                                     ),
                             tooltip: 'Добавить',

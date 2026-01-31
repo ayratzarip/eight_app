@@ -255,33 +255,39 @@ class EntryDetailScreen extends StatelessWidget {
   void _showDeleteDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Удалить запись?'),
-            content: const Text('Это действие нельзя отменить.'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Отмена'),
+      builder: (dialogContext) {
+        final isDark = Theme.of(dialogContext).brightness == Brightness.dark;
+        return AlertDialog(
+          title: const Text('Удалить запись?'),
+          content: const Text('Это действие нельзя отменить.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              style: TextButton.styleFrom(
+                foregroundColor:
+                    isDark ? const Color(0xFFFFFFFF) : Colors.black87,
               ),
-              TextButton(
-                onPressed: () {
-                  context.read<DiaryProvider>().deleteEntry(entry.id);
-                  Navigator.pop(context); // Закрыть диалог
-                  Navigator.pop(context); // Вернуться на главный экран
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Запись удалена'),
-                      backgroundColor: Colors.red,
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                },
-                style: TextButton.styleFrom(foregroundColor: Colors.red),
-                child: const Text('Удалить'),
-              ),
-            ],
-          ),
+              child: const Text('Отмена'),
+            ),
+            TextButton(
+              onPressed: () {
+                context.read<DiaryProvider>().deleteEntry(entry.id);
+                Navigator.pop(dialogContext); // Закрыть диалог
+                Navigator.pop(context); // Вернуться на главный экран
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Запись удалена'),
+                    backgroundColor: Colors.red,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Удалить'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

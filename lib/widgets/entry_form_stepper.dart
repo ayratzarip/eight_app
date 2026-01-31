@@ -62,6 +62,9 @@ class EntryFormStepper extends StatefulWidget {
 class _EntryFormStepperState extends State<EntryFormStepper> {
   FormStep _currentStep = FormStep.situation;
 
+  final ScrollController _scrollController = ScrollController();
+  final ScrollController _stepContentScrollController = ScrollController();
+
   // Controllers for text fields
   late TextEditingController _situationController;
   late TextEditingController _attentionController;
@@ -237,8 +240,30 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
     }
   }
 
+  void _scrollToTop() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(0);
+      }
+    });
+  }
+
+  void _scrollStepContentToTextField() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_stepContentScrollController.hasClients) {
+        _stepContentScrollController.animateTo(
+          _stepContentScrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
   @override
   void dispose() {
+    _scrollController.dispose();
+    _stepContentScrollController.dispose();
     _situationController.dispose();
     _attentionController.dispose();
     _thoughtsController.dispose();
@@ -333,6 +358,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
       setState(() {
         _currentStep = FormStep.values[_currentStep.index + 1];
       });
+      _scrollToTop();
     } else {
       _saveEntry();
     }
@@ -343,12 +369,14 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
       setState(() {
         _currentStep = FormStep.values[_currentStep.index - 1];
       });
+      _scrollToTop();
     } else if (_currentStep == FormStep.situation) {
       Navigator.of(context).pop();
     }
   }
 
   Future<void> _saveEntry() async {
+    HapticFeedback.lightImpact();
     if ((_currentStep == FormStep.futureActions ||
             // Если мы на шаге Actions и результат "Добились", то валидация уже была в _nextPage
             // и _saveEntry вызвана оттуда. Повторная валидация не нужна.
@@ -479,6 +507,198 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
     }
   }
 
+  /// Текст подсказки по заполнению текущего шага (по скрипту видео про журнал самонаблюдения).
+  String _getStepHintText(FormStep step) {
+    switch (step) {
+      case FormStep.situation:
+        return 'Записывайте ситуацию максимально кратко, используя ключевые слова. '
+            'Это должен быть заголовок лога, а не художественное описание. '
+            'Краткость поможет избежать усталости при ведении журнала и упростит поиск паттернов при анализе. \n'
+            'Ответьте на вопросы: Где я? Кто рядом? Что происходит? '
+            'Избегайте эмоциональных оценок на этом этапе.\n'
+            'Примеры:\n'
+            'Дейли-митинг, моя очередь говорить.\n'
+            'Обед с коллегами, разговор о проекте.\n'
+            'Встреча с заказчиком в Zoom.\n'
+            'Корпоратив, стою у барной стойки.\n';
+      case FormStep.attention:
+        return 'Внимание это то, как информация попадает в сознание. '
+            'Определите, какой канал поступления информации был активен в момент пика тревоги. '
+            'Если вы не воспринимаете внешние данные, значит, вы "обрабатываете" внутренние процессы. '
+            'Вы видели реальный объект, слушали реальный звук, '
+            'или "смотрели кино" в своей голове?\n'
+            'Варианты:\n'
+            '1. Сконцентрирован на зрительном образе: Концентрация на внешнем объекте (слайд презентации, деталь одежды собеседника).\n'
+            '2. Сконцентрирован на звуках: Восприятие физических характеристик звука (шум кулера, тембр голоса, интонация, а не смысл слов).\n'
+            '3. Сконцентрирован на смысле: Поглощенность содержанием беседы или тем, что Вы сами говорите.\n'
+            'Концентрацию на зрительных образах, звуках или смысле считаем оптимальными вариантами.\n'
+            '4. Концентрируюсь на ощущениях своего тела: Сканирование своего состояния (мониторинг пульса, проверка, не дрожат ли руки).\n'
+            '5. Погружен в свои мысли: Генерация виртуальной реальности. Вы думаете о разговоре, вместо того чтобы участвовать в нем.\n'
+            '6. Скачки внимания: Хаотичное переключение (>3 раз в секунду). "Бегающий взгляд", невозможность сосредоточиться.\n'
+            '7. Рассеянность: Состояние "полусна" или диссоциации. Отсутствие фокуса.\n'
+            'Примеры:\n'
+            'Концентрация на  смысле: Внимательно слушал архитектурное решение коллеги.\n'
+            'Концентрация на  мыслях: Обдумывал, как буду оправдываться за сорванный дедлайн.\n'
+            'Скачки внимания: Переводил внимание с директора на зама, смотрел на экран, потом на часы, прислушивался к сердцебиению.';
+      case FormStep.thoughts:
+        return 'Мысли – это когнитивные процессы, скрытые от внешнего наблюдателя.\n'
+            'Если Вам бывает сложно выявить свои собственные когнитивные процессы, то представьте вашу ситуацию в виде комикса, мысли — это то, что логично вписать в облачко над головой вашего персонажа. Другой прием – записать первое пришедшее в голову логичное объяснение своих реакций.\n'
+            'Виды мыслей:\n'
+            '1. Тревожные мысли о будущем. Они начинаются с «А вдруг…». «А вдруг они узнают, что я подделал оценку в дипломе, сдадут в полицию и меня посадят?»\n'
+            '2. Переживания прошлого опыта. Например, мимика девушки, похожа на мимику одноклассницы, которая над вами подшучивала.\n'
+            '3. Сожаления о прошлом. Начинаются с «ах, если бы…» Это то, что часто возникает после неудачной попытки. Эти мысли ухудшают настроение, и дают негативное подкрепление. «Ах, надо было сразу со всеми поздороваться, и пойти к кулеру рассказать анекдот.»\n'
+            '4. Ожидания оценки и самооценка. Это ответы на вопросы «какой я?» «каким они меня восприняли?» «как они обо мне подумали?» Например, «умный/тупой», «красивая/толстая».\n'
+            '5. Установки. Часто начинается с «я должен». Хорошо звучат, если их начать с вступления «как говорила моя бабушка…» Например, «я должен сразу показать, что я – лидер.»\n'
+            '6. Перегрузка планированием. Тревожные люди стараются подстелить соломку, спрогнозировать все возможные варианты развития событий и подготовится к любой ситуации. Например, «я подойду к начальнику, он скажет привет, как же ответить? Если отвечу привет, то невежливо, если здравствуйте – то слишком сухо. Если салют – по скуфовски…»\n'
+            '7. Мыслил «линейно». Мы будем так называть вариант мышления, когда Вы поглощены одной идеей. Это специфический нетревожный способ мыслить.';
+      case FormStep.bodySensations:
+        return 'Биологический смысл всех процессов, которые мы подмечаем, это подготовка к действию: убежать, напасть, спрятаться и так далее. Для всего этого необходимо подготовить тело: эти изменения можно прочувствовать.\n'
+            'Для того, чтобы описать телесные ощущения мы:\n'
+            '1. Быстро сканируем мышцы тела: от стоп до лба, пытаемся подметить, какие группы мышц напряглись. Обязательно обращайте внимание на мышцы брюшного пресса, надплечья, заднюю поверхность шеи, мышцы лица.\n'
+            '2. Оцениваем сердцебиение.\n'
+            '3. Оцениваем своё дыхание.\n'
+            '4. Осознаем, есть ли какие-нибудь ощущения в животе и в малом тазу.\n'
+            '5. Опционально пробегаемся по коже: стало жарко или холодно, выделился пот.\n'
+            'Интенсивность телесных ощущений измеряем с помощью визуально-аналоговой шкалы от 0 до 10.\n'
+            'Примеры:\n'
+            'Интенсивность ощущения 6 из 10. Весь напрягся, сердце стучало, покраснело лицо, вспотел.\n'
+            'Интенсивность ощущения 3 из 10. Небольшое напряжение в надплечьях, жар в груди, тепло в животе, ощущения приятные.';
+      case FormStep.actions:
+        return 'Записывайте кратко, но понятно — что вы сделали. После описания отметьте: добились желаемого '
+            'результата или нет. Мы оцениваем правильность действий по результату, а не по чьему-то мнению. '
+            'Поведение, которое Вы повторяете, когда-то могло быть полезным, поэтому мы не убираем «неправильные» стратегии, '
+            'а нарабатываем новые. \nЕсли нажали «Добился желаемого результата», запись можно сохранять.\n'
+            'Примеры:\n'
+            'Быстро ответил "Не знаю" и отвел взгляд. Не получил желаемый результат.\n'
+            'Задал уточняющий вопрос, несмотря на дрожь в голосе. Добился желаемого результата.\n';
+      case FormStep.futureActions:
+        return 'Если не знаете, как поступать в подобных ситуациях — нажмите «Не знаю» и сохраните. Записи с «Не знаю» '
+            'можно будет отсортировать и прийти с ними на консультацию, чтобы вместе придумать план. \nЕсли знаете, '
+            'что делать — выберите «Знаю…» и в поле ниже опишите свои будущие шаги, потом перечитаете и оцените, '
+            'поменялись ли ваши суждения.\n'
+            'Примеры:\n'
+            'Подготовить тезисы выступления на бумаге, держать зрительный контакт с лояльным коллегой.\n'
+            'При возникновении паузы в разговоре использовать заготовленный вопрос о хобби.';
+    }
+  }
+
+  Future<void> _onClosePressed() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        final isDark = Theme.of(dialogContext).brightness == Brightness.dark;
+        return AlertDialog(
+          title: const Text('Удалить запись?'),
+          content: Text(
+            _isEditing
+                ? 'Запись будет удалена из журнала.'
+                : 'Введённые данные не будут сохранены.',
+            style: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              style: TextButton.styleFrom(
+                foregroundColor:
+                    isDark ? const Color(0xFFFFFFFF) : Colors.black87,
+              ),
+              child: const Text('Отмена'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Удалить запись'),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed == true && mounted) {
+      if (_isEditing && widget.initialEntry != null) {
+        await context.read<DiaryProvider>().deleteEntry(
+          widget.initialEntry!.id,
+        );
+        if (mounted) {
+          Navigator.of(context).pop();
+        }
+      } else {
+        Navigator.of(context).pop();
+      }
+    }
+  }
+
+  void _showHintBottomSheet() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder:
+          (context) => Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.6,
+            ),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF23242B) : Colors.white,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
+            ),
+            child: SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(height: 8),
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[400],
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.lightbulb_outline,
+                          color: AppColors.logoGreen,
+                          size: 24,
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          'Как заполнять: ${_getStepTitle(_currentStep)}',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Flexible(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                      child: Text(
+                        _getStepHintText(_currentStep),
+                        style: TextStyle(
+                          fontSize: 15,
+                          height: 1.5,
+                          color: isDark ? Colors.white70 : Colors.black87,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+    );
+  }
+
   Widget _buildStep(FormStep step) {
     switch (step) {
       case FormStep.situation:
@@ -535,6 +755,9 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
               ),
               decoration: InputDecoration(
                 hintText: hintText,
+                hintStyle: TextStyle(
+                  color: isDark ? Colors.white38 : Colors.grey[400],
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.medium),
                   borderSide: BorderSide(color: Colors.grey[400]!),
@@ -574,6 +797,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
         isLandscape ? 16.0 : 24.0,
       ), // Меньше отступы в горизонтальном режиме
       child: SingleChildScrollView(
+        controller: _stepContentScrollController,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -599,6 +823,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                   setState(() {
                     _selectedAttentionOption = value;
                   });
+                  _scrollStepContentToTextField();
                 },
                 activeColor: AppColors.logoGreen,
                 contentPadding: EdgeInsets.zero,
@@ -625,6 +850,9 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                     _selectedAttentionOption == null
                         ? 'На чем было сосредоточено ваше внимание?'
                         : 'Ваши уточнения по фокусу внимания...',
+                hintStyle: TextStyle(
+                  color: isDark ? Colors.white38 : Colors.grey[400],
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.medium),
                   borderSide: BorderSide(color: Colors.grey[400]!),
@@ -664,6 +892,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
         isLandscape ? 16.0 : 24.0,
       ), // Меньше отступы в горизонтальном режиме
       child: SingleChildScrollView(
+        controller: _stepContentScrollController,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -694,6 +923,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                       // _thoughtsController.clear();
                     }
                   });
+                  _scrollStepContentToTextField();
                 },
                 activeColor: AppColors.logoGreen,
                 contentPadding: EdgeInsets.zero,
@@ -721,6 +951,9 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                     _selectedThoughtOption == null
                         ? 'Опишите свои мысли...'
                         : 'Ваши уточнения по мыслям...',
+                hintStyle: TextStyle(
+                  color: isDark ? Colors.white38 : Colors.grey[400],
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.medium),
                   borderSide: BorderSide(color: Colors.grey[400]!),
@@ -833,6 +1066,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                           max: 10,
                           divisions: 10, // 11 позиций от 0 до 10
                           onChanged: (double value) {
+                            HapticFeedback.selectionClick();
                             setState(() {
                               _bodySensationsIntensity = value;
                             });
@@ -880,6 +1114,9 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
               ),
               decoration: InputDecoration(
                 hintText: 'Что вы чувствовали в теле?',
+                hintStyle: TextStyle(
+                  color: isDark ? Colors.white38 : Colors.grey[400],
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.medium),
                   borderSide: BorderSide(color: Colors.grey[400]!),
@@ -948,6 +1185,9 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
               ),
               decoration: InputDecoration(
                 hintText: 'Опишите ваши действия...',
+                hintStyle: TextStyle(
+                  color: isDark ? Colors.white38 : Colors.grey[400],
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.medium),
                   borderSide: BorderSide(color: Colors.grey[400]!),
@@ -1016,6 +1256,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
         isLandscape ? 16.0 : 24.0,
       ), // Меньше отступы в горизонтальном режиме
       child: SingleChildScrollView(
+        controller: _stepContentScrollController,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1041,6 +1282,9 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                   setState(() {
                     _selectedFutureActionOption = value;
                   });
+                  if (value == futureActionOptions[0]) {
+                    _scrollStepContentToTextField();
+                  }
                 },
                 activeColor: AppColors.logoGreen,
                 contentPadding: EdgeInsets.zero,
@@ -1085,6 +1329,9 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                       ),
                       decoration: InputDecoration(
                         hintText: 'Опишите ваши будущие шаги...',
+                        hintStyle: TextStyle(
+                          color: isDark ? Colors.white38 : Colors.grey[400],
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(AppRadius.medium),
                           borderSide: BorderSide(color: Colors.grey[400]!),
@@ -1172,6 +1419,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                 isDark ? const Color(0xFF181A20) : const Color(0xFFF7F8FA),
             body: SafeArea(
               child: SingleChildScrollView(
+                controller: _scrollController,
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
                     minHeight:
@@ -1216,7 +1464,7 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                                 color: Theme.of(context).colorScheme.error,
                               ),
                               tooltip: 'Закрыть',
-                              onPressed: () => Navigator.of(context).pop(),
+                              onPressed: _onClosePressed,
                             ),
                           ],
                         ),
@@ -1262,6 +1510,35 @@ class _EntryFormStepperState extends State<EntryFormStepper> {
                               isLandscape
                                   ? 3
                                   : 4, // Тоньше в горизонтальном режиме
+                        ),
+                      ),
+                      // Кнопка «Подсказка» под линией прогресса справа
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          isLandscape ? 16 : 24,
+                          isLandscape ? 4 : 8,
+                          isLandscape ? 16 : 24,
+                          0,
+                        ),
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: FilledButton.icon(
+                            onPressed: _showHintBottomSheet,
+                            icon: Icon(
+                              Icons.lightbulb_outline,
+                              size: isLandscape ? 18 : 20,
+                              color: theme.colorScheme.onPrimary,
+                            ),
+                            label: const Text('Подсказка'),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: theme.colorScheme.primary,
+                              foregroundColor: theme.colorScheme.onPrimary,
+                              elevation: 3,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                       // Контент текущего шага
